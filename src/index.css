@@ -1,0 +1,249 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  :root {
+    --font-serif: "Fraunces", Georgia, Cambria, "Times New Roman", serif;
+    --font-sans: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    --theme-bg: #FAF9F6;
+    --theme-surface: #FFFFFF;
+    --theme-surface-muted: #F3F1EC;
+    --theme-border: #E4E0D8;
+    --theme-text: #1C1917;
+    --theme-text-muted: #57534E;
+    --theme-accent: #1D4ED8;
+  }
+
+  html {
+    font-family: var(--font-sans);
+    scroll-behavior: smooth;
+    background-color: var(--theme-bg);
+    color: var(--theme-text);
+  }
+
+  body {
+    background-color: var(--theme-bg);
+    color: var(--theme-text);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+
+  h1, h2, h3, .font-editorial {
+    font-family: var(--font-serif);
+  }
+
+  code, pre, .font-mono {
+    font-family: var(--font-mono);
+  }
+}
+
+.theme-canvas {
+  background-color: var(--theme-bg);
+  color: var(--theme-text);
+}
+
+.theme-surface {
+  background-color: var(--theme-surface);
+  border-color: var(--theme-border);
+}
+
+.theme-surface-muted {
+  background-color: var(--theme-surface-muted);
+  border-color: var(--theme-border);
+}
+
+.theme-border {
+  border-color: var(--theme-border);
+}
+
+.theme-accent-btn {
+  background-color: var(--theme-accent);
+  color: #ffffff;
+}
+
+.theme-accent-text {
+  color: var(--theme-accent);
+}
+
+/* Scientific monograph prose & KaTeX refinements */
+.scientific-prose {
+  font-family: var(--font-sans);
+  line-height: 1.75;
+  font-size: 1.03125rem;
+}
+
+.scientific-prose h1,
+.scientific-prose h2,
+.scientific-prose h3,
+.scientific-prose h4 {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  margin-top: 2.25rem;
+  margin-bottom: 0.875rem;
+  scroll-margin-top: 5.5rem;
+}
+
+.scientific-prose h2 {
+  font-size: 1.625rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgb(231 229 228);
+}
+
+.dark .scientific-prose h2 {
+  border-bottom-color: rgb(38 42 54);
+}
+
+.scientific-prose h3 {
+  font-size: 1.25rem;
+}
+
+.scientific-prose p {
+  margin-bottom: 1.25rem;
+}
+
+.scientific-prose ul,
+.scientific-prose ol {
+  margin-bottom: 1.25rem;
+  padding-left: 1.5rem;
+}
+
+.scientific-prose ul {
+  list-style-type: disc;
+}
+
+.scientific-prose ol {
+  list-style-type: decimal;
+}
+
+.scientific-prose li {
+  margin-bottom: 0.45rem;
+}
+
+.scientific-prose blockquote {
+  margin: 1.75rem 0;
+  padding: 1rem 1.25rem;
+  border-top: 1px solid rgb(214 211 209);
+  border-bottom: 1px solid rgb(214 211 209);
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 1.125rem;
+}
+
+.dark .scientific-prose blockquote {
+  border-top-color: rgb(46 52 66);
+  border-bottom-color: rgb(46 52 66);
+}
+
+.scientific-prose pre {
+  margin: 1.5rem 0;
+  padding: 1rem 1.25rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgb(231 229 228);
+  background-color: rgb(245 244 240);
+  overflow-x: auto;
+  font-size: 0.84rem;
+  line-height: 1.6;
+}
+
+.dark .scientific-prose pre {
+  border-color: rgb(38 42 54);
+  background-color: rgb(20 23 30);
+}
+
+.scientific-prose :not(pre) > code {
+  padding: 0.15rem 0.35rem;
+  border-radius: 0.25rem;
+  background-color: rgb(240 238 232);
+  font-size: 0.875em;
+}
+
+.dark .scientific-prose :not(pre) > code {
+  background-color: rgb(30 34 44);
+}
+
+.scientific-prose table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.scientific-prose th,
+.scientific-prose td {
+  padding: 0.625rem 0.875rem;
+  border-bottom: 1px solid rgb(231 229 228);
+  text-align: left;
+}
+
+.dark .scientific-prose th,
+.dark .scientific-prose td {
+  border-bottom-color: rgb(38 42 54);
+}
+
+.scientific-prose th {
+  font-weight: 600;
+  border-bottom-width: 2px;
+}
+
+.scientific-prose .katex-display {
+  margin: 1.5rem 0;
+  padding: 0.75rem 0.5rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.scientific-prose a {
+  color: #1d4ed8;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.dark .scientific-prose a {
+  color: #60a5fa;
+}
+
+/* Highlight.js minimal academic syntax palette */
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-built_in {
+  color: #1d4ed8;
+  font-weight: 500;
+}
+
+.dark .hljs-keyword,
+.dark .hljs-selector-tag,
+.dark .hljs-built_in {
+  color: #93c5fd;
+}
+
+.hljs-string,
+.hljs-attr {
+  color: #15803d;
+}
+
+.dark .hljs-string,
+.dark .hljs-attr {
+  color: #86efac;
+}
+
+.hljs-number,
+.hljs-literal {
+  color: #b45309;
+}
+
+.dark .hljs-number,
+.dark .hljs-literal {
+  color: #fcd34d;
+}
+
+.hljs-comment {
+  color: #78716c;
+  font-style: italic;
+}
