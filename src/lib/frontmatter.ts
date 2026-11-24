@@ -12,6 +12,7 @@ export interface ParsedFrontmatter {
   publishedAt: string;
   updatedAt: string;
   doi?: string;
+  authorAvatar?: string;
   coverImage?: string;
   coverCaption?: string;
 }
@@ -150,6 +151,8 @@ export function parseArticleMarkdown(
           ? map.updatedAt
           : defaults.updatedAt,
       doi: typeof map.doi === 'string' && map.doi ? map.doi : undefined,
+      authorAvatar:
+        typeof map.authorAvatar === 'string' && map.authorAvatar ? map.authorAvatar : undefined,
       coverImage: typeof map.coverImage === 'string' && map.coverImage ? map.coverImage : undefined,
       coverCaption:
         typeof map.coverCaption === 'string' && map.coverCaption ? map.coverCaption : undefined,
@@ -176,6 +179,7 @@ export function serializeArticleMarkdown(
     | 'publishedAt'
     | 'updatedAt'
     | 'doi'
+    | 'authorAvatar'
     | 'coverImage'
     | 'coverCaption'
     | 'body'
@@ -198,6 +202,9 @@ export function serializeArticleMarkdown(
 
   if (article.doi) {
     lines.push(`doi: ${escapeYamlString(article.doi)}`);
+  }
+  if (article.authorAvatar) {
+    lines.push(`authorAvatar: ${escapeYamlString(article.authorAvatar)}`);
   }
   if (article.coverImage) {
     lines.push(`coverImage: ${escapeYamlString(article.coverImage)}`);

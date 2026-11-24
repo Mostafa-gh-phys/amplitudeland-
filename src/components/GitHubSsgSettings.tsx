@@ -42,8 +42,8 @@ function previewPagesUrlForInputs(owner: string, repo: string, customDomain: str
   if (cleanedDomain && !isGitHubOwnedDomain(cleanedDomain)) {
     return `https://${cleanedDomain}`;
   }
-  const cleanOwner = owner.trim() || 'your-username';
-  const cleanRepo = repo.trim() || 'amplitudeland';
+  const cleanOwner = owner.trim() || 'amplitudeland';
+  const cleanRepo = repo.trim() || 'amplitudeland.github.io';
   if (cleanRepo.toLowerCase() === `${cleanOwner.toLowerCase()}.github.io`) {
     return `https://${cleanOwner}.github.io`;
   }
@@ -60,8 +60,8 @@ export function GitHubSsgSettings({
 }: GitHubSsgSettingsProps) {
   const canManageGitHub = userRole === 'admin';
 
-  const [owner, setOwner] = useState(githubStatus?.owner || 'amplitudeland-press');
-  const [repo, setRepo] = useState(githubStatus?.repo || 'amplitudeland');
+  const [owner, setOwner] = useState(githubStatus?.owner || 'amplitudeland');
+  const [repo, setRepo] = useState(githubStatus?.repo || 'amplitudeland.github.io');
   const [branch, setBranch] = useState(githubStatus?.branch || 'main');
   const [contentDir, setContentDir] = useState(githubStatus?.contentDir || 'content/posts');
   const [pagesBranch, setPagesBranch] = useState(githubStatus?.pagesBranch || 'gh-pages');
@@ -81,6 +81,8 @@ export function GitHubSsgSettings({
   const [inspectedHtml, setInspectedHtml] = useState<{ slug: string; html: string } | null>(null);
   const [nextjsCode, setNextjsCode] = useState<string | null>(null);
   const [copiedNext, setCopiedNext] = useState(false);
+  const [workflowYaml, setWorkflowYaml] = useState<string | null>(null);
+  const [copiedWorkflow, setCopiedWorkflow] = useState(false);
   const [copiedPagesUrl, setCopiedPagesUrl] = useState(false);
 
   const [pagesBundle, setPagesBundle] = useState<GitHubPagesBundle | null>(null);
@@ -226,10 +228,7 @@ export function GitHubSsgSettings({
     setOwner(selected.owner);
     setRepo(selected.name);
     setBranch(selected.defaultBranch);
-    const nextPagesBranch =
-      selected.name.toLowerCase() === `${selected.owner.toLowerCase()}.github.io`
-        ? selected.defaultBranch
-        : pagesBranch || 'gh-pages';
+    const nextPagesBranch = pagesBranch || 'gh-pages';
     setPagesBranch(nextPagesBranch);
     setFeedback(null);
     try {
@@ -483,12 +482,33 @@ export function GitHubSsgSettings({
     }
   };
 
+  const handleShowWorkflowYaml = async () => {
+    try {
+      const res = await cmsApi.getPagesWorkflow();
+      setWorkflowYaml(res.code);
+    } catch (err) {
+      setFeedback({
+        type: 'err',
+        text: err instanceof Error ? err.message : 'Unable to load GitHub Actions workflow.',
+      });
+    }
+  };
+
   const handleCopyNextJs = async () => {
     if (!nextjsCode) return;
     const ok = await copyTextSafely(nextjsCode);
     if (ok) {
       setCopiedNext(true);
       window.setTimeout(() => setCopiedNext(false), 2000);
+    }
+  };
+
+  const handleCopyWorkflow = async () => {
+    if (!workflowYaml) return;
+    const ok = await copyTextSafely(workflowYaml);
+    if (ok) {
+      setCopiedWorkflow(true);
+      window.setTimeout(() => setCopiedWorkflow(false), 2000);
     }
   };
 
@@ -651,7 +671,12 @@ export function GitHubSsgSettings({
               )}
             </div>
             <p className="text-xs text-stone-600 dark:text-stone-400">
-              Tip: Only the GitHub user/organization named <code className="font-mono">{owner && owner !== 'amplitudeland-press' ? owner : 'your-username'}</code> can serve at <code className="font-mono">https://{owner && owner !== 'amplitudeland-press' ? owner : 'your-username'}.github.io</code> (using a repo named <code className="font-mono">{owner && owner !== 'amplitudeland-press' ? owner : 'your-username'}.github.io</code>).
+              Auto-deploys on push to <code className="font-mono">{branch || 'main'}</code> via{' '}
+              <code className="font-mono">.github/workflows/deploy-pages.yml</code> (or publish directly to branch{' '}
+              <code className="font-mono">{pagesBranch || 'gh-pages'}</code>). Root domain{' '}
+              <code className="font-mono">https://amplitudeland.github.io</code> requires GitHub owner/org{' '}
+              <code className="font-mono">amplitudeland</code> and repo{' '}
+              <code className="font-mono">amplitudeland.github.io</code>.
               {githubStatus?.lastPagesPublishedAt && (
                 <> Last published {githubStatus.lastPagesPublishedAt.slice(0, 19).replace('T', ' ')} UTC.</>
               )}
@@ -1032,6 +1057,14 @@ export function GitHubSsgSettings({
             <div className="flex flex-wrap items-center gap-3 text-xs">
               <button
                 type="button"
+                onClick={handleShowWorkflowYaml}
+                className="inline-flex items-center gap-1.5 rounded-md border border-stone-300 bg-white px-3 py-1.5 font-medium text-stone-800 hover:bg-stone-100 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-200 dark:hover:bg-stone-800"
+              >
+                <GitBranch className="h-3.5 w-3.5" aria-hidden="true" />
+                <span>GitHub Actions Workflow</span>
+              </button>
+              <button
+                type="button"
                 onClick={handleShowNextJsScaffold}
                 className="inline-flex items-center gap-1.5 rounded-md border border-stone-300 bg-white px-3 py-1.5 font-medium text-stone-800 hover:bg-stone-100 dark:border-stone-700 dark:bg-stone-900 dark:text-stone-200 dark:hover:bg-stone-800"
               >
@@ -1237,6 +1270,44 @@ export function GitHubSsgSettings({
             </div>
             <pre className="flex-1 overflow-auto p-5 font-mono text-xs leading-relaxed text-stone-800 dark:text-stone-200">
               {nextjsCode}
+            </pre>
+          </div>
+        </div>
+      )}
+      {/* Modal: GitHub Actions Workflow */}
+      {workflowYaml && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="GitHub Actions Pages Workflow"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+        >
+          <div className="flex max-h-[85vh] w-full max-w-3xl flex-col rounded-md border border-stone-200 bg-white shadow-xl dark:border-stone-800 dark:bg-stone-900">
+            <div className="flex items-center justify-between border-b border-stone-200 px-5 py-3.5 dark:border-stone-800">
+              <span className="font-mono text-xs font-semibold text-stone-800 dark:text-stone-200">
+                .github/workflows/deploy-pages.yml
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleCopyWorkflow}
+                  className="inline-flex items-center gap-1 rounded border border-stone-300 px-2.5 py-1 text-xs font-medium text-stone-800 hover:bg-stone-100 dark:border-stone-700 dark:text-stone-200 dark:hover:bg-stone-800"
+                >
+                  <Copy className="h-3 w-3" />
+                  <span>{copiedWorkflow ? 'Copied' : 'Copy'}</span>
+                </button>
+                <button
+                  type="button"
+                  aria-label="Close workflow modal"
+                  onClick={() => setWorkflowYaml(null)}
+                  className="rounded p-1 text-stone-500 hover:bg-stone-100 dark:hover:bg-stone-800"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+            <pre className="flex-1 overflow-auto p-5 font-mono text-xs leading-relaxed text-stone-800 dark:text-stone-200">
+              {workflowYaml}
             </pre>
           </div>
         </div>

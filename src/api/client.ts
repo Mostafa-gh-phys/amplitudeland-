@@ -391,4 +391,8 @@ export const cmsApi = {
   getNextJsScaffold() {
     return apiFetch<{ filename: string; code: string }>('/api/ssg/nextjs-scaffold');
   },
+
+  getPagesWorkflow() {
+    return apiFetch<{ filename: string; code: string }>('/api/ssg/workflow');
+  },
 };

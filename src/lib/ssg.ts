@@ -1,4 +1,5 @@
 import { computeGitHubPagesUrl, sanitizeCustomDomain } from './auth.ts';
+import { extractTocHeadings } from './frontmatter.ts';
 import { renderMarkdownLatex } from './markdownLatex.ts';
 import type {
   Article,
@@ -21,18 +22,95 @@ function escapeXml(value: string): string {
   return escapeHtml(value);
 }
 
+function resolveStaticAssetPath(
+  src: string | undefined,
+  depthPrefix: string,
+  localAssets: boolean,
+): string | null {
+  if (!src) return null;
+  if (/^https?:\/\//i.test(src)) return src;
+  if (src.startsWith('/src/assets/images/')) {
+    const filename = src.slice('/src/assets/images/'.length);
+    return localAssets ? `${depthPrefix}assets/images/${filename}` : `${depthPrefix}assets/images/${filename}`;
+  }
+  if (src.startsWith('/assets/')) {
+    return `${depthPrefix}${src.slice(1)}`;
+  }
+  return src;
+}
+
+const SHARED_THEME_VARS_CSS = `
+      :root {
+        --bg: #FAF9F6;
+        --surface: #FFFFFF;
+        --surface-muted: #F3F1EC;
+        --border: #E4E0D8;
+        --text: #1C1917;
+        --text-muted: #57534E;
+        --accent: #1D4ED8;
+        --accent-hover: #1E40AF;
+        --font-serif: "Fraunces", Georgia, Cambria, serif;
+        --font-sans: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+        --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme="archival-paper"]):not([data-theme="sepia-folio"]) {
+          --bg: #0F1115;
+          --surface: #161A22;
+          --surface-muted: #1E232E;
+          --border: #272D3A;
+          --text: #F1F5F9;
+          --text-muted: #94A3B8;
+          --accent: #60A5FA;
+          --accent-hover: #93C5FD;
+        }
+      }
+      :root[data-theme="archival-paper"] {
+        --bg: #FAF9F6; --surface: #FFFFFF; --surface-muted: #F3F1EC; --border: #E4E0D8;
+        --text: #1C1917; --text-muted: #57534E; --accent: #1D4ED8; --accent-hover: #1E40AF;
+      }
+      :root[data-theme="sepia-folio"] {
+        --bg: #F4EFE6; --surface: #FBF8F1; --surface-muted: #EAE2D3; --border: #DDD3C2;
+        --text: #292018; --text-muted: #665748; --accent: #9A3412; --accent-hover: #7C2D12;
+      }
+      :root[data-theme="obsidian-ink"] {
+        --bg: #0F1115; --surface: #161A22; --surface-muted: #1E232E; --border: #272D3A;
+        --text: #F1F5F9; --text-muted: #94A3B8; --accent: #60A5FA; --accent-hover: #93C5FD;
+      }
+      :root[data-theme="midnight-observatory"] {
+        --bg: #080D1A; --surface: #0F172A; --surface-muted: #172036; --border: #1E293B;
+        --text: #E2E8F0; --text-muted: #94A3B8; --accent: #38BDF8; --accent-hover: #7DD3FC;
+      }
+      * { box-sizing: border-box; }
+      body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font-sans); line-height: 1.75; transition: background 0.15s, color 0.15s; }
+`;
+
+const THEME_INIT_SCRIPT = `<script>(function(){try{var t=localStorage.getItem('amplitudeland_pages_theme');if(t){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>`;
+
 export function generateStaticArticleHtml(
   article: Article,
   baseUrl: string,
-  options?: { isGitHubPages?: boolean },
+  options?: { isGitHubPages?: boolean; localAssets?: boolean },
 ): string {
   const cleanBase = baseUrl.replace(/\/+$/, '');
   const isPages = options?.isGitHubPages ?? true;
+  const localAssets = options?.localAssets ?? false;
   const canonicalUrl = `${cleanBase}/posts/${encodeURIComponent(article.slug)}/`;
   const homeHref = isPages ? '../../index.html' : '/';
-  const readerHref = isPages ? '../../index.html' : `/posts/${encodeURIComponent(article.slug)}`;
-  const readerLabel = isPages ? 'All Monographs' : 'Open Interactive Reader';
+  const rssHref = isPages ? '../../rss.xml' : '/rss.xml';
+  const katexCssHref = localAssets
+    ? '../../assets/katex/katex.min.css'
+    : 'https://cdn.jsdelivr.net/npm/katex@0.19.1/dist/katex.min.css';
+
   const bodyHtml = renderMarkdownLatex(article.body);
+  const toc = extractTocHeadings(article.body);
+  const coverSrc = resolveStaticAssetPath(article.coverImage, '../../', localAssets);
+  const avatarSrc = resolveStaticAssetPath(article.authorAvatar, '../../', localAssets);
+
+  const lastName = article.author.split(' ').slice(-1)[0]?.toLowerCase() || 'author';
+  const year = article.publishedAt.slice(0, 4) || '2026';
+  const bibKey = `${lastName.replace(/[^a-z]/g, '')}${year}${article.slug.split('-')[0] || ''}`;
+  const bibtex = `@article{${bibKey},\n  title={${article.title}},\n  author={${article.author}},\n  journal={AmplitudeLand Scientific Journal},\n  year={${year}},\n  url={${canonicalUrl}}${article.doi ? `,\n  doi={${article.doi}}` : ''}\n}`;
 
   const jsonLd = JSON.stringify(
     {
@@ -70,6 +148,28 @@ export function generateStaticArticleHtml(
   const safeAffiliation = escapeHtml(article.authorAffiliation);
   const safeTags = article.tags.map((t) => escapeHtml(t)).join(', ');
 
+  const tocHtml =
+    toc.length > 0
+      ? `<nav class="side-card" aria-label="Table of Contents">
+          <div class="side-title">Contents</div>
+          <ul class="toc-list">
+            ${toc
+              .map(
+                (h) =>
+                  `<li class="${h.level === 3 ? 'toc-h3' : ''}"><a href="#${escapeHtml(h.id)}">${escapeHtml(h.text)}</a></li>`,
+              )
+              .join('\n            ')}
+          </ul>
+        </nav>`
+      : '';
+
+  const coverHtml = coverSrc
+    ? `<figure class="cover-plate">
+        <div class="cover-frame"><img src="${escapeHtml(coverSrc)}" alt="${safeTitle}" /></div>
+        ${article.coverCaption ? `<figcaption>${escapeHtml(article.coverCaption)}</figcaption>` : ''}
+      </figure>`
+    : '';
+
   return `<!doctype html>
 <html lang="en">
   <head>
@@ -91,44 +191,166 @@ export function generateStaticArticleHtml(
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="${safeTitle}" />
     <meta name="twitter:description" content="${safeAbstract}" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css" crossorigin="anonymous" />
+    ${THEME_INIT_SCRIPT}
+    <link rel="stylesheet" href="${escapeHtml(katexCssHref)}" crossorigin="anonymous" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=JetBrains+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
     <script type="application/ld+json">${jsonLd}</script>
-    <style>
-      body { margin: 0; background: #FAF9F6; color: #1C1917; font-family: "Plus Jakarta Sans", system-ui, sans-serif; line-height: 1.75; }
-      header { border-bottom: 1px solid #E4E0D8; padding: 1.25rem 2rem; display: flex; justify-content: space-between; align-items: center; max-width: 72rem; margin: 0 auto; }
-      header a { color: #1C1917; text-decoration: none; font-weight: 600; }
-      main { max-width: 48rem; margin: 3rem auto; padding: 0 1.5rem 4rem; }
-      .meta { font-size: 0.8125rem; color: #57534E; margin-bottom: 1rem; }
-      h1 { font-family: "Fraunces", Georgia, serif; font-size: clamp(2rem, 4vw, 3rem); line-height: 1.15; margin: 0 0 1rem; font-weight: 600; }
-      .abstract { font-size: 1.125rem; color: #44403C; border-top: 1px solid #E4E0D8; border-bottom: 1px solid #E4E0D8; padding: 1.25rem 0; margin: 1.5rem 0 2.5rem; }
-      article h2 { font-family: "Fraunces", Georgia, serif; font-size: 1.5rem; margin-top: 2.25rem; border-bottom: 1px solid #E4E0D8; padding-bottom: 0.4rem; }
-      article pre { background: #F3F1EC; border: 1px solid #E4E0D8; padding: 1rem; border-radius: 6px; overflow-x: auto; font-family: "JetBrains Mono", monospace; font-size: 0.85rem; }
-      article code { font-family: "JetBrains Mono", monospace; background: #F0EEE8; padding: 0.15rem 0.35rem; border-radius: 4px; font-size: 0.88em; }
-      article pre code { background: transparent; padding: 0; }
-      .katex-display { overflow-x: auto; padding: 0.5rem 0; }
-      footer { max-width: 48rem; margin: 3rem auto 0; padding: 1.5rem; border-top: 1px solid #E4E0D8; font-size: 0.8125rem; color: #57534E; }
+    <style>${SHARED_THEME_VARS_CSS}
+      header { position: sticky; top: 0; z-index: 40; border-bottom: 1px solid var(--border); background: var(--surface); }
+      .header-inner { max-width: 72rem; margin: 0 auto; padding: 0.9rem 1.5rem; display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+      .brand { font-family: var(--font-serif); font-size: 1.35rem; font-weight: 600; color: var(--text); text-decoration: none; }
+      .header-nav { display: flex; align-items: center; gap: 1rem; font-size: 0.84rem; font-weight: 600; }
+      .header-nav a { color: var(--accent); text-decoration: none; }
+      .header-nav a:hover { text-decoration: underline; }
+      .theme-select { background: var(--surface-muted); color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 0.3rem 0.55rem; font-size: 0.78rem; font-family: var(--font-sans); cursor: pointer; }
+      .page-wrap { max-width: 72rem; margin: 2.5rem auto 5rem; padding: 0 1.5rem; display: grid; gap: 3rem; grid-template-columns: minmax(0, 1fr); }
+      @media (min-width: 1024px) { .page-wrap { grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr); align-items: start; } }
+      .meta { display: flex; flex-wrap: wrap; gap: 0.45rem; font-size: 0.8125rem; color: var(--text-muted); margin-bottom: 0.85rem; }
+      .meta .cat { color: var(--accent); font-weight: 600; }
+      h1 { font-family: var(--font-serif); font-size: clamp(2rem, 3.8vw, 2.75rem); line-height: 1.15; margin: 0 0 1.1rem; font-weight: 600; letter-spacing: -0.015em; }
+      .author-row { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.75rem; }
+      .author-avatar { width: 40px; height: 40px; border-radius: 9999px; object-fit: cover; border: 1px solid var(--border); }
+      .author-name { font-size: 0.9rem; font-weight: 600; color: var(--text); }
+      .author-aff { font-size: 0.78rem; color: var(--text-muted); }
+      .abstract { border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 1.25rem 0; margin: 1.5rem 0 2rem; }
+      .abstract-label { font-size: 0.75rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0.35rem; }
+      .abstract p { margin: 0; font-size: 1.03rem; color: var(--text); }
+      .cover-plate { margin: 0 0 2.25rem; }
+      .cover-frame { overflow: hidden; border-radius: 6px; border: 1px solid var(--border); aspect-ratio: 16 / 9; background: var(--surface-muted); }
+      .cover-frame img { width: 100%; height: 100%; object-fit: cover; display: block; }
+      .cover-plate figcaption { margin-top: 0.5rem; font-family: var(--font-serif); font-style: italic; font-size: 0.8rem; color: var(--text-muted); }
+      article.prose { max-width: 44rem; font-size: 1.03rem; }
+      article.prose h2 { font-family: var(--font-serif); font-size: 1.55rem; margin: 2.25rem 0 0.85rem; border-bottom: 1px solid var(--border); padding-bottom: 0.4rem; scroll-margin-top: 5rem; }
+      article.prose h3 { font-family: var(--font-serif); font-size: 1.2rem; margin: 1.75rem 0 0.65rem; scroll-margin-top: 5rem; }
+      article.prose p { margin: 0 0 1.2rem; }
+      article.prose blockquote { margin: 1.5rem 0; padding: 0.9rem 1.15rem; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); font-family: var(--font-serif); font-style: italic; font-size: 1.08rem; }
+      article.prose pre { background: var(--surface-muted); border: 1px solid var(--border); padding: 1rem; border-radius: 6px; overflow-x: auto; font-family: var(--font-mono); font-size: 0.84rem; line-height: 1.6; }
+      article.prose code { font-family: var(--font-mono); background: var(--surface-muted); padding: 0.15rem 0.35rem; border-radius: 4px; font-size: 0.87em; }
+      article.prose pre code { background: transparent; padding: 0; }
+      article.prose table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; font-size: 0.9rem; font-variant-numeric: tabular-nums; }
+      article.prose th, article.prose td { padding: 0.6rem 0.8rem; border-bottom: 1px solid var(--border); text-align: left; }
+      article.prose th { font-weight: 600; border-bottom-width: 2px; }
+      .katex-display { overflow-x: auto; overflow-y: hidden; padding: 0.65rem 0.25rem; }
+      .bibtex-box { margin-top: 3rem; padding-top: 1.75rem; border-top: 1px solid var(--border); max-width: 44rem; }
+      .bibtex-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; }
+      .bibtex-head h2 { font-family: var(--font-serif); font-size: 1.15rem; margin: 0; }
+      .copy-btn { background: var(--surface); border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 0.35rem 0.75rem; font-size: 0.78rem; font-weight: 600; cursor: pointer; }
+      .copy-btn:hover { background: var(--surface-muted); }
+      .bibtex-pre { background: var(--surface-muted); border: 1px solid var(--border); border-radius: 6px; padding: 1rem; font-family: var(--font-mono); font-size: 0.78rem; overflow-x: auto; margin: 0; }
+      aside { position: sticky; top: 5rem; display: flex; flex-direction: column; gap: 1.5rem; }
+      .side-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem; }
+      .side-title { font-size: 0.75rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; }
+      .toc-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.85rem; }
+      .toc-list li.toc-h3 { padding-left: 0.9rem; font-size: 0.82rem; }
+      .toc-list a { color: var(--text); text-decoration: none; }
+      .toc-list a:hover { color: var(--accent); text-decoration: underline; }
+      .dossier { margin: 0; font-size: 0.78rem; }
+      .dossier-row { display: flex; justify-content: space-between; gap: 1rem; padding: 0.55rem 0; border-bottom: 1px solid var(--border); }
+      .dossier-row:last-child { border-bottom: 0; }
+      .dossier dt { color: var(--text-muted); }
+      .dossier dd { margin: 0; font-weight: 500; text-align: right; word-break: break-word; }
+      .mono { font-family: var(--font-mono); }
+      footer { max-width: 72rem; margin: 0 auto; padding: 1.75rem 1.5rem 3rem; border-top: 1px solid var(--border); font-size: 0.8125rem; color: var(--text-muted); display: flex; flex-wrap: wrap; justify-content: space-between; gap: 1rem; }
+      footer a { color: var(--accent); text-decoration: none; }
     </style>
   </head>
   <body>
     <header>
-      <a href="${homeHref}" style="font-family: 'Fraunces', serif; font-size: 1.25rem;">AmplitudeLand</a>
-      <a href="${readerHref}" style="font-size: 0.875rem; color: #1D4ED8;">${readerLabel}</a>
-    </header>
-    <main>
-      <div class="meta">
-        <span>${safeCategory}</span> · <span>${escapeHtml(article.publishedAt)}</span> · <span>${article.readingTimeMinutes} min read</span> · <span>${article.equationCount} equations</span>
+      <div class="header-inner">
+        <a href="${homeHref}" class="brand">AmplitudeLand</a>
+        <div class="header-nav">
+          <a href="${homeHref}">All Monographs</a>
+          <a href="${rssHref}">RSS</a>
+          <select aria-label="Color theme" class="theme-select" id="themeSelect">
+            <option value="">System Theme</option>
+            <option value="archival-paper">Archival Paper</option>
+            <option value="sepia-folio">Sepia Folio</option>
+            <option value="obsidian-ink">Obsidian Ink</option>
+            <option value="midnight-observatory">Midnight Observatory</option>
+          </select>
+        </div>
       </div>
-      <h1>${safeTitle}</h1>
-      <div class="meta">By <strong>${safeAuthor}</strong> (${safeAffiliation})${article.doi ? ` · DOI ${escapeHtml(article.doi)}` : ''}</div>
-      <div class="abstract">${safeAbstract}</div>
-      <article>${bodyHtml}</article>
-      <footer>
-        AmplitudeLand Static Monograph · Commit <code>${escapeHtml(article.commitSha)}</code> · Tags: ${safeTags || 'None'}
-      </footer>
-    </main>
+    </header>
+    <div class="page-wrap">
+      <main>
+        <div class="meta">
+          <span class="cat">${safeCategory}</span><span>·</span>
+          <span>Published ${escapeHtml(article.publishedAt)}</span><span>·</span>
+          <span>${article.readingTimeMinutes} min read</span><span>·</span>
+          <span>${article.equationCount} ${article.equationCount === 1 ? 'equation' : 'equations'}</span>
+        </div>
+        <h1>${safeTitle}</h1>
+        <div class="author-row">
+          ${avatarSrc ? `<img class="author-avatar" src="${escapeHtml(avatarSrc)}" alt="${safeAuthor}" />` : ''}
+          <div>
+            <div class="author-name">${safeAuthor}</div>
+            <div class="author-aff">${safeAffiliation}</div>
+          </div>
+        </div>
+        <section class="abstract" aria-label="Abstract">
+          <div class="abstract-label">Abstract</div>
+          <p>${safeAbstract}</p>
+        </section>
+        ${coverHtml}
+        <article class="prose">${bodyHtml}</article>
+        <section class="bibtex-box" aria-label="BibTeX Citation">
+          <div class="bibtex-head">
+            <h2>Cite This Monograph</h2>
+            <button type="button" class="copy-btn" id="copyBibtex">Copy BibTeX</button>
+          </div>
+          <pre class="bibtex-pre" id="bibtexPre">${escapeHtml(bibtex)}</pre>
+        </section>
+      </main>
+      <aside>
+        ${tocHtml}
+        <div class="side-card">
+          <div class="side-title">Monograph Dossier</div>
+          <dl class="dossier">
+            <div class="dossier-row"><dt>Category</dt><dd>${safeCategory}</dd></div>
+            <div class="dossier-row"><dt>Tags</dt><dd>${safeTags || 'None'}</dd></div>
+            <div class="dossier-row"><dt>Git File</dt><dd class="mono">${escapeHtml(article.filePath)}</dd></div>
+            <div class="dossier-row"><dt>Commit SHA</dt><dd class="mono">${escapeHtml(article.commitSha)}</dd></div>
+            ${article.doi ? `<div class="dossier-row"><dt>DOI</dt><dd class="mono">${escapeHtml(article.doi)}</dd></div>` : ''}
+            <div class="dossier-row"><dt>Updated</dt><dd class="mono">${escapeHtml(article.updatedAt)}</dd></div>
+          </dl>
+        </div>
+      </aside>
+    </div>
+    <footer>
+      <span>AmplitudeLand Scientific Journal · Static Monograph</span>
+      <span><a href="${homeHref}">← Back to Monograph Index</a></span>
+    </footer>
+    <script>
+      (function () {
+        var select = document.getElementById('themeSelect');
+        if (select) {
+          var saved = localStorage.getItem('amplitudeland_pages_theme') || '';
+          select.value = saved;
+          select.addEventListener('change', function () {
+            var val = select.value;
+            if (val) {
+              document.documentElement.setAttribute('data-theme', val);
+              localStorage.setItem('amplitudeland_pages_theme', val);
+            } else {
+              document.documentElement.removeAttribute('data-theme');
+              localStorage.removeItem('amplitudeland_pages_theme');
+            }
+          });
+        }
+        var copyBtn = document.getElementById('copyBibtex');
+        var pre = document.getElementById('bibtexPre');
+        if (copyBtn && pre && navigator.clipboard) {
+          copyBtn.addEventListener('click', function () {
+            navigator.clipboard.writeText(pre.textContent || '').then(function () {
+              copyBtn.textContent = 'Copied BibTeX';
+              setTimeout(function () { copyBtn.textContent = 'Copy BibTeX'; }, 2000);
+            });
+          });
+        }
+      })();
+    </script>
   </body>
 </html>`;
 }
@@ -136,30 +358,69 @@ export function generateStaticArticleHtml(
 export function generateGitHubPagesIndexHtml(
   publishedArticles: Article[],
   pagesUrl: string,
+  options?: { localAssets?: boolean },
 ): string {
   const cleanBase = pagesUrl.replace(/\/+$/, '');
+  const localAssets = options?.localAssets ?? false;
   const sorted = [...publishedArticles].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
   const categories = Array.from(new Set(sorted.map((a) => a.category)));
+
+  const lead = sorted.find((a) => Boolean(a.coverImage)) ?? sorted[0];
+  const leadHref = lead ? `./posts/${encodeURIComponent(lead.slug)}/index.html` : '#';
+  const leadCoverSrc = lead ? resolveStaticAssetPath(lead.coverImage, './', localAssets) : null;
+  const leadAvatarSrc = lead ? resolveStaticAssetPath(lead.authorAvatar, './', localAssets) : null;
+
+  const leadHeroHtml = lead
+    ? `<section class="lead-hero" aria-labelledby="lead-title">
+        <div class="lead-grid">
+          <div class="lead-copy">
+            <div class="card-meta">
+              <span class="cat-text">${escapeHtml(lead.category)}</span>
+              <span>·</span><span>${escapeHtml(lead.publishedAt)}</span>
+              <span>·</span><span>${lead.readingTimeMinutes} min read</span>
+              <span>·</span><span>${lead.equationCount} ${lead.equationCount === 1 ? 'equation' : 'equations'}</span>
+            </div>
+            <h1 id="lead-title"><a href="${leadHref}">${escapeHtml(lead.title)}</a></h1>
+            <p class="lead-abstract">${escapeHtml(lead.abstract)}</p>
+            <div class="lead-footer">
+              <div class="author-row">
+                ${leadAvatarSrc ? `<img class="author-avatar" src="${escapeHtml(leadAvatarSrc)}" alt="${escapeHtml(lead.author)}" />` : ''}
+                <div>
+                  <div class="author-name">${escapeHtml(lead.author)}</div>
+                  <div class="author-aff">${escapeHtml(lead.authorAffiliation)}</div>
+                </div>
+              </div>
+              <a class="read-cta" href="${leadHref}">Read Monograph →</a>
+            </div>
+          </div>
+          ${leadCoverSrc ? `<div class="lead-plate"><a href="${leadHref}"><img src="${escapeHtml(leadCoverSrc)}" alt="${escapeHtml(lead.title)}" /></a>${lead.coverCaption ? `<div class="plate-caption">${escapeHtml(lead.coverCaption)}</div>` : ''}</div>` : ''}
+        </div>
+      </section>`
+    : '';
 
   const cardsHtml = sorted
     .map((a) => {
       const href = `./posts/${encodeURIComponent(a.slug)}/index.html`;
+      const thumbSrc = resolveStaticAssetPath(a.coverImage, './', localAssets);
       const tagsList = a.tags.map((t) => `<span class="tag">#${escapeHtml(t)}</span>`).join(' ');
       return `      <article class="monograph-card" data-category="${escapeHtml(a.category)}" data-search="${escapeHtml((a.title + ' ' + a.abstract + ' ' + a.author + ' ' + a.tags.join(' ')).toLowerCase())}">
-        <div class="card-meta">
-          <span class="category-badge">${escapeHtml(a.category)}</span>
-          <span>·</span>
-          <span>${escapeHtml(a.publishedAt)}</span>
-          <span>·</span>
-          <span>${a.readingTimeMinutes} min read</span>
-          <span>·</span>
-          <span>${a.equationCount} LaTeX equations</span>
-        </div>
-        <h2><a href="${href}">${escapeHtml(a.title)}</a></h2>
-        <p class="abstract">${escapeHtml(a.abstract)}</p>
-        <div class="card-footer">
-          <div class="byline">By <strong>${escapeHtml(a.author)}</strong> (${escapeHtml(a.authorAffiliation)})</div>
-          <div class="tags-row">${tagsList}</div>
+        ${thumbSrc ? `<a class="card-thumb" href="${href}"><img src="${escapeHtml(thumbSrc)}" alt="${escapeHtml(a.title)}" loading="lazy" /></a>` : ''}
+        <div class="card-body">
+          <div class="card-meta">
+            <span class="category-badge">${escapeHtml(a.category)}</span>
+            <span>·</span>
+            <span>${escapeHtml(a.publishedAt)}</span>
+            <span>·</span>
+            <span>${a.readingTimeMinutes} min read</span>
+            <span>·</span>
+            <span>${a.equationCount} LaTeX equations</span>
+          </div>
+          <h2><a href="${href}">${escapeHtml(a.title)}</a></h2>
+          <p class="abstract">${escapeHtml(a.abstract)}</p>
+          <div class="card-footer">
+            <div class="byline">By <strong>${escapeHtml(a.author)}</strong> (${escapeHtml(a.authorAffiliation)})</div>
+            <div class="tags-row">${tagsList}</div>
+          </div>
         </div>
       </article>`;
     })
@@ -179,68 +440,69 @@ export function generateGitHubPagesIndexHtml(
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AmplitudeLand — Scientific Monographs &amp; LaTeX Weblog</title>
     <meta name="description" content="Peer-grade scientific monographs with native LaTeX typesetting, version-controlled via GitHub CMS." />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="AmplitudeLand" />
+    <meta property="og:title" content="AmplitudeLand — Scientific Monographs &amp; LaTeX Weblog" />
+    <meta property="og:description" content="Peer-grade scientific monographs with native LaTeX typesetting, version-controlled via GitHub CMS." />
+    <meta property="og:url" content="${escapeHtml(cleanBase)}/" />
     <link rel="canonical" href="${escapeHtml(cleanBase)}/" />
     <link rel="alternate" type="application/rss+xml" title="AmplitudeLand RSS" href="./rss.xml" />
+    ${THEME_INIT_SCRIPT}
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=JetBrains+Mono:ital,wght@0,400;0,500;1,400&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet" />
-    <style>
-      :root {
-        --bg: #FAF9F6;
-        --surface: #FFFFFF;
-        --surface-muted: #F3F1EC;
-        --border: #E4E0D8;
-        --text: #1C1917;
-        --text-muted: #57534E;
-        --accent: #1D4ED8;
-        --accent-hover: #1E40AF;
-      }
-      @media (prefers-color-scheme: dark) {
-        :root {
-          --bg: #0F1115;
-          --surface: #181B22;
-          --surface-muted: #212631;
-          --border: #2D3342;
-          --text: #F3F4F6;
-          --text-muted: #9CA3AF;
-          --accent: #60A5FA;
-          --accent-hover: #93C5FD;
-        }
-      }
-      body { margin: 0; background: var(--bg); color: var(--text); font-family: "Plus Jakarta Sans", system-ui, sans-serif; line-height: 1.75; transition: background 0.2s, color 0.2s; }
-      header { border-bottom: 1px solid var(--border); background: var(--surface); padding: 1.25rem 2rem; position: sticky; top: 0; z-index: 50; backdrop-filter: blur(8px); }
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=JetBrains+Mono:ital,wght@0,400;0,500;1,400&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet" />
+    <style>${SHARED_THEME_VARS_CSS}
+      header { border-bottom: 1px solid var(--border); background: var(--surface); padding: 1rem 1.5rem; position: sticky; top: 0; z-index: 50; }
       .header-inner { max-width: 72rem; margin: 0 auto; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem; }
       .brand-group { display: flex; align-items: baseline; gap: 0.75rem; text-decoration: none; }
-      .brand { font-family: "Cormorant Garamond", Georgia, serif; font-size: 1.75rem; font-weight: 700; color: var(--text); letter-spacing: -0.01em; }
+      .brand { font-family: var(--font-serif); font-size: 1.5rem; font-weight: 600; color: var(--text); letter-spacing: -0.015em; }
       .brand-sub { font-size: 0.8125rem; color: var(--text-muted); font-weight: 500; }
-      nav { display: flex; align-items: center; gap: 1.25rem; font-size: 0.875rem; font-weight: 600; }
+      nav { display: flex; align-items: center; gap: 1.15rem; font-size: 0.85rem; font-weight: 600; flex-wrap: wrap; }
       nav a { color: var(--accent); text-decoration: none; }
       nav a:hover { color: var(--accent-hover); text-decoration: underline; }
-      main { max-width: 72rem; margin: 3rem auto; padding: 0 1.5rem 5rem; }
-      .hero-box { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 2.5rem; margin-bottom: 2.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
-      .hero-title { font-family: "Cormorant Garamond", Georgia, serif; font-size: clamp(2rem, 3.5vw, 2.75rem); line-height: 1.15; margin: 0 0 0.75rem; font-weight: 700; }
-      .hero-lead { font-size: 1.05rem; color: var(--text-muted); margin: 0 0 1.5rem; max-width: 48rem; }
-      .search-filter-bar { display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; justify-content: space-between; margin-bottom: 2rem; }
-      .search-input { width: 100%; max-width: 24rem; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 0.65rem 1rem; font-size: 0.875rem; color: var(--text); }
+      .theme-select { background: var(--surface-muted); color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 0.3rem 0.55rem; font-size: 0.78rem; font-family: var(--font-sans); cursor: pointer; }
+      main { max-width: 72rem; margin: 2.25rem auto; padding: 0 1.5rem 5rem; }
+      .lead-hero { border-bottom: 1px solid var(--border); padding-bottom: 2.75rem; margin-bottom: 2.5rem; }
+      .lead-grid { display: grid; gap: 2rem; grid-template-columns: minmax(0, 1fr); align-items: stretch; }
+      @media (min-width: 960px) { .lead-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 3rem; } }
+      .lead-copy { display: flex; flex-direction: column; justify-content: space-between; }
+      .lead-copy h1 { font-family: var(--font-serif); font-size: clamp(1.9rem, 3.2vw, 2.55rem); line-height: 1.14; margin: 0.5rem 0 1rem; font-weight: 600; }
+      .lead-copy h1 a { color: var(--text); text-decoration: none; }
+      .lead-copy h1 a:hover { color: var(--accent); }
+      .lead-abstract { font-size: 1rem; color: var(--text-muted); margin: 0 0 1.5rem; }
+      .lead-footer { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem; border-top: 1px solid var(--border); padding-top: 1.1rem; }
+      .author-row { display: flex; align-items: center; gap: 0.75rem; }
+      .author-avatar { width: 40px; height: 40px; border-radius: 9999px; object-fit: cover; border: 1px solid var(--border); }
+      .author-name { font-size: 0.875rem; font-weight: 600; color: var(--text); }
+      .author-aff { font-size: 0.75rem; color: var(--text-muted); }
+      .read-cta { display: inline-flex; align-items: center; background: var(--text); color: var(--bg); padding: 0.55rem 1rem; border-radius: 6px; font-size: 0.84rem; font-weight: 600; text-decoration: none; }
+      .read-cta:hover { background: var(--accent); color: #ffffff; }
+      .lead-plate img { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; border-radius: 6px; border: 1px solid var(--border); display: block; }
+      .plate-caption { margin-top: 0.45rem; font-family: var(--font-serif); font-style: italic; font-size: 0.78rem; color: var(--text-muted); }
+      .search-filter-bar { display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; justify-content: space-between; margin-bottom: 1.75rem; }
+      .search-input { width: 100%; max-width: 22rem; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 0.55rem 0.9rem; font-size: 0.875rem; color: var(--text); }
       .search-input:focus { outline: 2px solid var(--accent); }
-      .categories-row { display: flex; flex-wrap: wrap; gap: 0.5rem; }
-      .cat-btn { background: var(--surface); border: 1px solid var(--border); color: var(--text-muted); padding: 0.4rem 0.85rem; border-radius: 9999px; font-size: 0.8125rem; font-weight: 500; cursor: pointer; transition: all 0.15s; }
+      .categories-row { display: flex; flex-wrap: wrap; gap: 0.45rem; }
+      .cat-btn { background: var(--surface); border: 1px solid var(--border); color: var(--text-muted); padding: 0.35rem 0.8rem; border-radius: 6px; font-size: 0.8rem; font-weight: 500; cursor: pointer; }
       .cat-btn:hover { background: var(--surface-muted); color: var(--text); }
       .cat-btn.active { background: var(--accent); border-color: var(--accent); color: #FFFFFF; }
       .monographs-grid { display: grid; gap: 1.5rem; }
-      .monograph-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 2rem; transition: transform 0.15s, box-shadow 0.15s; box-shadow: 0 1px 2px rgba(0,0,0,0.02); }
-      .monograph-card:hover { transform: translateY(-2px); box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); }
-      .card-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; font-size: 0.8125rem; color: var(--text-muted); margin-bottom: 0.75rem; }
-      .category-badge { display: inline-block; background: var(--surface-muted); color: var(--text); padding: 0.15rem 0.6rem; border-radius: 6px; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.03em; }
-      .monograph-card h2 { font-family: "Cormorant Garamond", Georgia, serif; font-size: 1.65rem; line-height: 1.25; margin: 0 0 0.75rem; }
+      .monograph-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem; display: grid; gap: 1.5rem; grid-template-columns: minmax(0, 1fr); align-items: start; }
+      @media (min-width: 720px) { .monograph-card:has(.card-thumb) { grid-template-columns: 220px minmax(0, 1fr); } }
+      .card-thumb { display: block; border-radius: 6px; overflow: hidden; border: 1px solid var(--border); aspect-ratio: 4 / 3; }
+      .card-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+      .card-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 0.45rem; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.5rem; }
+      .cat-text { color: var(--accent); font-weight: 600; }
+      .category-badge { display: inline-block; background: var(--surface-muted); color: var(--text); padding: 0.15rem 0.55rem; border-radius: 4px; font-weight: 600; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.03em; }
+      .monograph-card h2 { font-family: var(--font-serif); font-size: 1.45rem; line-height: 1.25; margin: 0 0 0.6rem; }
       .monograph-card h2 a { color: var(--text); text-decoration: none; }
       .monograph-card h2 a:hover { color: var(--accent); }
-      .abstract { color: var(--text-muted); font-size: 0.95rem; line-height: 1.7; margin: 0 0 1.25rem; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-      .card-footer { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem; border-top: 1px solid var(--border); padding-top: 1rem; font-size: 0.85rem; }
+      .abstract { color: var(--text-muted); font-size: 0.92rem; line-height: 1.65; margin: 0 0 1rem; }
+      .card-footer { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 0.75rem; border-top: 1px solid var(--border); padding-top: 0.85rem; font-size: 0.82rem; }
       .byline { color: var(--text-muted); }
       .byline strong { color: var(--text); }
       .tags-row { display: flex; flex-wrap: wrap; gap: 0.35rem; }
-      .tag { font-family: "JetBrains Mono", monospace; font-size: 0.75rem; color: var(--text-muted); background: var(--surface-muted); padding: 0.1rem 0.4rem; border-radius: 4px; }
+      .tag { font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-muted); background: var(--surface-muted); padding: 0.1rem 0.4rem; border-radius: 4px; }
       footer { max-width: 72rem; margin: 0 auto; padding: 2rem 1.5rem 4rem; border-top: 1px solid var(--border); font-size: 0.8125rem; color: var(--text-muted); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 1rem; }
       .footer-links { display: flex; gap: 1.5rem; }
       .footer-links a { color: var(--text-muted); text-decoration: none; }
@@ -252,24 +514,28 @@ export function generateGitHubPagesIndexHtml(
       <div class="header-inner">
         <a class="brand-group" href="./index.html">
           <span class="brand">AmplitudeLand</span>
-          <span class="brand-sub">Sci-Weblog &amp; LaTeX CMS</span>
+          <span class="brand-sub">Open Scientific Monographs · LaTeX</span>
         </a>
         <nav>
           <a href="./index.html">Journal</a>
           <a href="./rss.xml">RSS Feed</a>
           <a href="./sitemap.xml">Sitemap</a>
+          <select aria-label="Color theme" class="theme-select" id="themeSelect">
+            <option value="">System Theme</option>
+            <option value="archival-paper">Archival Paper</option>
+            <option value="sepia-folio">Sepia Folio</option>
+            <option value="obsidian-ink">Obsidian Ink</option>
+            <option value="midnight-observatory">Midnight Observatory</option>
+          </select>
         </nav>
       </div>
     </header>
     <main>
-      <div class="hero-box">
-        <h1 class="hero-title">Scientific Monographs &amp; LaTeX Research Notes</h1>
-        <p class="hero-lead">Peer-grade scientific publications with native KaTeX mathematical typesetting, version-controlled via GitHub CMS and statically rendered for optimal SEO and performance.</p>
-        <div class="search-filter-bar">
-          <input type="text" id="searchInput" class="search-input" placeholder="Search monographs, authors, equations..." />
-          <div class="categories-row" id="categoriesRow">
-            ${categoryButtons}
-          </div>
+      ${leadHeroHtml}
+      <div class="search-filter-bar">
+        <input type="text" id="searchInput" class="search-input" placeholder="Search monographs, authors, tags..." aria-label="Search monographs" />
+        <div class="categories-row" id="categoriesRow">
+          ${categoryButtons}
         </div>
       </div>
 
@@ -278,40 +544,86 @@ ${cardsHtml}
       </div>
     </main>
     <footer>
-      <span>AmplitudeLand · GitHub-Backed Scientific Weblog</span>
+      <span>AmplitudeLand · GitHub Pages Static Journal</span>
       <div class="footer-links">
         <a href="./rss.xml">RSS Feed</a>
         <a href="./sitemap.xml">Sitemap</a>
-        <a href="https://github.com" target="_blank" rel="noreferrer">GitHub CMS</a>
+        <a href="${escapeHtml(cleanBase)}/">${escapeHtml(cleanBase.replace(/^https?:\/\//, ''))}</a>
       </div>
     </footer>
     <script>
-      const searchInput = document.getElementById('searchInput');
-      const catBtns = document.querySelectorAll('.cat-btn');
-      const cards = document.querySelectorAll('.monograph-card');
-      let activeCategory = 'all';
+      (function () {
+        var select = document.getElementById('themeSelect');
+        if (select) {
+          var saved = localStorage.getItem('amplitudeland_pages_theme') || '';
+          select.value = saved;
+          select.addEventListener('change', function () {
+            var val = select.value;
+            if (val) {
+              document.documentElement.setAttribute('data-theme', val);
+              localStorage.setItem('amplitudeland_pages_theme', val);
+            } else {
+              document.documentElement.removeAttribute('data-theme');
+              localStorage.removeItem('amplitudeland_pages_theme');
+            }
+          });
+        }
+        var searchInput = document.getElementById('searchInput');
+        var catBtns = document.querySelectorAll('.cat-btn');
+        var cards = document.querySelectorAll('.monograph-card');
+        var activeCategory = 'all';
 
-      function filterCards() {
-        const query = (searchInput.value || '').toLowerCase().trim();
-        cards.forEach(card => {
-          const cat = card.getAttribute('data-category');
-          const text = card.getAttribute('data-search') || '';
-          const matchesCat = activeCategory === 'all' || cat === activeCategory;
-          const matchesQuery = !query || text.includes(query);
-          card.style.display = (matchesCat && matchesQuery) ? 'block' : 'none';
-        });
-      }
+        function filterCards() {
+          var query = (searchInput.value || '').toLowerCase().trim();
+          cards.forEach(function (card) {
+            var cat = card.getAttribute('data-category');
+            var text = card.getAttribute('data-search') || '';
+            var matchesCat = activeCategory === 'all' || cat === activeCategory;
+            var matchesQuery = !query || text.includes(query);
+            card.style.display = (matchesCat && matchesQuery) ? '' : 'none';
+          });
+        }
 
-      searchInput.addEventListener('input', filterCards);
-      catBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-          catBtns.forEach(b => b.classList.remove('active'));
-          btn.classList.add('active');
-          activeCategory = btn.getAttribute('data-cat') || 'all';
-          filterCards();
+        searchInput.addEventListener('input', filterCards);
+        catBtns.forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            catBtns.forEach(function (b) { b.classList.remove('active'); });
+            btn.classList.add('active');
+            activeCategory = btn.getAttribute('data-cat') || 'all';
+            filterCards();
+          });
         });
-      });
+      })();
     </script>
+  </body>
+</html>`;
+}
+
+export function generateNotFoundHtml(pagesUrl: string): string {
+  const cleanBase = pagesUrl.replace(/\/+$/, '');
+  return `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Page Not Found — AmplitudeLand</title>
+    ${THEME_INIT_SCRIPT}
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Plus+Jakarta+Sans:wght@400;600&display=swap" rel="stylesheet" />
+    <style>${SHARED_THEME_VARS_CSS}
+      .wrap { max-width: 36rem; margin: 7rem auto; padding: 2.5rem; text-align: center; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; }
+      h1 { font-family: var(--font-serif); font-size: 2rem; margin: 0 0 0.75rem; }
+      p { color: var(--text-muted); margin: 0 0 1.75rem; font-size: 0.95rem; }
+      a { display: inline-block; background: var(--accent); color: #ffffff; text-decoration: none; padding: 0.6rem 1.2rem; border-radius: 6px; font-weight: 600; font-size: 0.875rem; }
+    </style>
+  </head>
+  <body>
+    <main class="wrap">
+      <h1>Monograph Not Found</h1>
+      <p>The requested URL does not match a published AmplitudeLand monograph on ${escapeHtml(cleanBase.replace(/^https?:\/\//, ''))}.</p>
+      <a href="/">Return to AmplitudeLand Journal</a>
+    </main>
   </body>
 </html>`;
 }
@@ -319,7 +631,7 @@ ${cardsHtml}
 export function generateSitemapXml(
   publishedArticles: Article[],
   baseUrl: string,
-  options?: { isGitHubPages?: boolean },
+  _options?: { isGitHubPages?: boolean },
 ): string {
   const cleanBase = baseUrl.replace(/\/+$/, '');
   const urls = [
@@ -424,15 +736,17 @@ export function buildStaticSite(
 
 export function buildGitHubPagesBundle(
   articles: Article[],
-  options: { owner: string; repo: string; customDomain?: string },
+  options: { owner: string; repo: string; customDomain?: string; localAssets?: boolean },
 ): GitHubPagesBundle {
   const cleanDomain = options.customDomain ? sanitizeCustomDomain(options.customDomain) : '';
   const pagesUrl = computeGitHubPagesUrl(options.owner, options.repo, cleanDomain);
+  const localAssets = options.localAssets ?? false;
   const published = articles.filter((a) => a.status === 'published');
 
   const files: GitHubPagesFile[] = [
     { path: '.nojekyll', content: '' },
-    { path: 'index.html', content: generateGitHubPagesIndexHtml(published, pagesUrl) },
+    { path: 'index.html', content: generateGitHubPagesIndexHtml(published, pagesUrl, { localAssets }) },
+    { path: '404.html', content: generateNotFoundHtml(pagesUrl) },
     {
       path: 'sitemap.xml',
       content: generateSitemapXml(published, pagesUrl, { isGitHubPages: true }),
@@ -454,7 +768,7 @@ export function buildGitHubPagesBundle(
   for (const article of published) {
     files.push({
       path: `posts/${article.slug}/index.html`,
-      content: generateStaticArticleHtml(article, pagesUrl, { isGitHubPages: true }),
+      content: generateStaticArticleHtml(article, pagesUrl, { isGitHubPages: true, localAssets }),
     });
   }
 
@@ -465,6 +779,63 @@ export function buildGitHubPagesBundle(
     totalBytes,
     files,
   };
+}
+
+export function generateGitHubPagesWorkflowYaml(branch = 'main'): string {
+  const cleanBranch = branch.trim() || 'main';
+  return `name: Deploy AmplitudeLand to GitHub Pages
+
+on:
+  push:
+    branches: ['${cleanBranch}']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: 'pages'
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install dependencies
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci --no-audit --no-fund
+          else
+            npm install --no-audit --no-fund
+          fi
+      - name: Build static AmplitudeLand GitHub Pages site
+        run: npm run build:pages
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist-pages
+
+  deploy:
+    environment:
+      name: github-pages
+      url: \${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+`;
 }
 
 export function generateNextJsSsgScaffold(owner: string, repo: string, branch: string, contentDir: string): string {

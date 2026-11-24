@@ -29,9 +29,15 @@ import {
   serializeArticleMarkdown,
   slugify,
 } from './src/lib/frontmatter.ts';
+import { loadArticlesFromDiskOrSeed } from './src/lib/contentLoader.ts';
 import { renderMarkdownLatex } from './src/lib/markdownLatex.ts';
-import { SEED_ARTICLES, SEED_CATEGORIES, SEED_COMMITS } from './src/lib/seedArticles.ts';
-import { buildGitHubPagesBundle, buildStaticSite, generateNextJsSsgScaffold } from './src/lib/ssg.ts';
+import { SEED_CATEGORIES, SEED_COMMITS } from './src/lib/seedArticles.ts';
+import {
+  buildGitHubPagesBundle,
+  buildStaticSite,
+  generateGitHubPagesWorkflowYaml,
+  generateNextJsSsgScaffold,
+} from './src/lib/ssg.ts';
 import type {
   Article,
   ArticleInput,
@@ -66,8 +72,8 @@ const ENV_ADMIN_USERNAME = (process.env.ADMIN_USERNAME || 'admin').trim();
 const ENV_ADMIN_LOGIN_KEY = process.env.ADMIN_LOGIN_KEY || '';
 const AUTH_STORE_PATH = path.resolve(process.cwd(), '.amplitudeland-auth.json');
 
-// In-memory CMS repository store (always pre-populated with scientific monographs & drafts)
-let articles: Article[] = SEED_ARTICLES.map((a) => ({ ...a, tags: [...a.tags] }));
+// In-memory CMS repository store (hydrated from content/posts/*.md + scientific seed fallback)
+let articles: Article[] = loadArticlesFromDiskOrSeed(process.cwd(), 'content/posts');
 let categories: CategoryMeta[] = SEED_CATEGORIES.map((c) => ({ ...c }));
 let commits: CommitRecord[] = SEED_COMMITS.map((c) => ({ ...c }));
 
@@ -86,8 +92,8 @@ let repoConfig: {
   lastSyncedAt?: string;
   lastPagesPublishedAt?: string;
 } = {
-  owner: 'mostafa-gh-phys',
-  repo: 'Sci-Weblog',
+  owner: 'amplitudeland',
+  repo: 'amplitudeland.github.io',
   branch: 'main',
   contentDir: 'content/posts',
   pagesBranch: 'gh-pages',
@@ -1283,7 +1289,7 @@ async function startServer() {
         avatarUrl: user.avatar_url,
         createdAt: Date.now(),
       });
-      if (repoConfig.owner === 'amplitudeland-press') {
+      if (!repoConfig.owner || repoConfig.owner === 'your-username') {
         repoConfig.owner = user.login;
         rebuildStaticBundle();
       }
@@ -1366,9 +1372,9 @@ async function startServer() {
         createdAt: Date.now(),
       });
 
-      if (owner && owner !== 'amplitudeland-press') {
+      if (owner && owner !== 'your-username') {
         repoConfig.owner = owner;
-      } else if (repoConfig.owner === 'amplitudeland-press') {
+      } else if (!repoConfig.owner || repoConfig.owner === 'your-username') {
         repoConfig.owner = user.login;
       }
       if (repo) repoConfig.repo = repo;
@@ -1497,9 +1503,6 @@ async function startServer() {
       repoConfig.owner = createdOwner;
       repoConfig.repo = createdName;
       repoConfig.branch = defaultBranch;
-      if (createdName.toLowerCase() === `${createdOwner.toLowerCase()}.github.io`) {
-        repoConfig.pagesBranch = defaultBranch;
-      }
       rebuildStaticBundle();
 
       return res.status(201).json({
@@ -1741,7 +1744,7 @@ async function startServer() {
       repoConfig.customDomain = bodyCustomDomain ? sanitizeCustomDomain(bodyCustomDomain) : undefined;
     }
 
-    if (repoConfig.owner === 'amplitudeland-press') {
+    if (!repoConfig.owner || repoConfig.owner === 'your-username') {
       repoConfig.owner = session.username;
     }
     if (!isValidRepoSegment(repoConfig.owner) || !isValidRepoSegment(repoConfig.repo)) {
@@ -1799,6 +1802,18 @@ async function startServer() {
       }
 
       const defaultBranch = repoMeta.default_branch || repoConfig.branch || 'main';
+      if (targetBranch === defaultBranch || targetBranch === repoConfig.branch) {
+        const pkgCheck = await githubFetch(
+          `${repoBase}/contents/package.json?ref=${encodeURIComponent(targetBranch)}`,
+          session.token,
+        );
+        if (pkgCheck.ok) {
+          return res.status(400).json({
+            error: `Refusing to force-push static HTML onto source branch "${targetBranch}" because it contains application source code (package.json). Keep GitHub Pages Branch set to "gh-pages", or use the included .github/workflows/deploy-pages.yml GitHub Actions workflow.`,
+          });
+        }
+      }
+
       rebuildStaticBundle();
       const bundle = buildGitHubPagesBundle(articles, {
         owner: repoConfig.owner,
@@ -1877,6 +1892,30 @@ async function startServer() {
         }
         const blobData = (await blobRes.json()) as { sha: string };
         treeEntries.push({ path: file.path, mode: '100644', type: 'blob', sha: blobData.sha });
+      }
+
+      // Include editorial plate images & author portraits from src/assets/images/
+      const srcImagesDir = path.resolve(process.cwd(), 'src/assets/images');
+      if (fs.existsSync(srcImagesDir)) {
+        for (const entry of fs.readdirSync(srcImagesDir, { withFileTypes: true })) {
+          if (!entry.isFile()) continue;
+          const imgPath = path.join(srcImagesDir, entry.name);
+          const imgB64 = fs.readFileSync(imgPath).toString('base64');
+          const imgBlobRes = await githubFetch(`${repoBase}/git/blobs`, session.token, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ content: imgB64, encoding: 'base64' }),
+          });
+          if (imgBlobRes.ok) {
+            const imgBlobData = (await imgBlobRes.json()) as { sha: string };
+            treeEntries.push({
+              path: `assets/images/${entry.name}`,
+              mode: '100644',
+              type: 'blob',
+              sha: imgBlobData.sha,
+            });
+          }
+        }
       }
 
       const treeRes = await githubFetch(`${repoBase}/git/trees`, session.token, {
@@ -2167,6 +2206,11 @@ async function startServer() {
       repoConfig.contentDir,
     );
     res.json({ filename: 'app/posts/[slug]/page.tsx', code });
+  });
+
+  app.get('/api/ssg/workflow', (_req, res) => {
+    const code = generateGitHubPagesWorkflowYaml(repoConfig.branch);
+    res.json({ filename: '.github/workflows/deploy-pages.yml', code });
   });
 
   const httpServer = createHttpServer(app);
