@@ -37,6 +37,9 @@ jobs:
           fi
 
       - name: Build static AmplitudeLand GitHub Pages site
+        env:
+          ADMIN_USERNAME: ${{ vars.ADMIN_USERNAME }}
+          ADMIN_LOGIN_KEY: ${{ secrets.ADMIN_LOGIN_KEY }}
         run: npm run build:pages
 
       - name: Detect GitHub Pages mode

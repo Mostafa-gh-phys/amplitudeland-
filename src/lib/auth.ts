@@ -56,6 +56,48 @@ export function verifyLoginKey(loginKey: string, salt: string, expectedHexHash: 
   }
 }
 
+export const ADMIN_LOCK_ITERATIONS = 100000 as const;
+
+export function hashPortableAdminKey(
+  loginKey: string,
+  existingSalt?: string,
+): {
+  algorithm: 'pbkdf2-sha256';
+  iterations: typeof ADMIN_LOCK_ITERATIONS;
+  salt: string;
+  keyHash: string;
+} {
+  const salt = existingSalt || crypto.randomBytes(16).toString('hex');
+  const keyHash = crypto
+    .pbkdf2Sync(loginKey, salt, ADMIN_LOCK_ITERATIONS, 32, 'sha256')
+    .toString('hex');
+  return {
+    algorithm: 'pbkdf2-sha256',
+    iterations: ADMIN_LOCK_ITERATIONS,
+    salt,
+    keyHash,
+  };
+}
+
+export function verifyPortableAdminKey(
+  loginKey: string,
+  salt: string,
+  expectedHexHash: string,
+  iterations: number = ADMIN_LOCK_ITERATIONS,
+): boolean {
+  if (!loginKey || !salt || !expectedHexHash || !Number.isFinite(iterations) || iterations < 10000) {
+    return false;
+  }
+  try {
+    const actual = crypto.pbkdf2Sync(loginKey, salt, Math.floor(iterations), 32, 'sha256');
+    const expected = Buffer.from(expectedHexHash, 'hex');
+    if (actual.length !== expected.length) return false;
+    return crypto.timingSafeEqual(actual, expected);
+  } catch {
+    return false;
+  }
+}
+
 export function generateAccessKey(): string {
   const bytes = crypto.randomBytes(18).toString('base64url');
   return `amp_${bytes}`;

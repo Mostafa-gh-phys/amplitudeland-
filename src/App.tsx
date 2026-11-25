@@ -146,6 +146,9 @@ export default function App() {
     try {
       const session = await cmsApi.getAuthSession();
       setAuthState(session);
+      if (!session.authenticated) {
+        setAuthSessionToken(null);
+      }
 
       const [artRes, catRes, ssgRes] = await Promise.all([
         cmsApi.listArticles(),

@@ -1,5 +1,6 @@
 import { KeyRound, Menu, ShieldCheck, X } from 'lucide-react';
 import { useState } from 'react';
+import { isStaticPagesApp } from '../api/client.ts';
 import type { AuthSessionState } from '../lib/types.ts';
 
 export type AppSection = 'journal' | 'categories' | 'ssg' | 'cms';
@@ -36,7 +37,7 @@ export function TopBar({
   };
 
   const isSignedIn = Boolean(authState?.authenticated && authState.user);
-  const needsAdminClaim = Boolean(authState && !authState.adminConfigured);
+  const needsAdminClaim = Boolean(!isStaticPagesApp() && authState && !authState.adminConfigured);
 
   return (
     <header

@@ -12,6 +12,7 @@ import {
   computeGitHubPagesUrl,
   generateAccessKey,
   hashLoginKey,
+  hashPortableAdminKey,
   isGitHubOwnedDomain,
   isValidCustomDomain,
   normalizeUsername,
@@ -20,6 +21,7 @@ import {
   validateLoginKey,
   validateUsername,
   verifyLoginKey,
+  verifyPortableAdminKey,
 } from './src/lib/auth.ts';
 import {
   countLatexEquations,
@@ -39,6 +41,7 @@ import {
   generateNextJsSsgScaffold,
 } from './src/lib/ssg.ts';
 import type {
+  AdminLockRecord,
   Article,
   ArticleInput,
   AuthSessionState,
@@ -71,6 +74,10 @@ const GITHUB_CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET || '';
 const ENV_ADMIN_USERNAME = (process.env.ADMIN_USERNAME || 'admin').trim();
 const ENV_ADMIN_LOGIN_KEY = process.env.ADMIN_LOGIN_KEY || '';
 const AUTH_STORE_PATH = path.resolve(process.cwd(), '.amplitudeland-auth.json');
+const ADMIN_LOCK_PATH = path.resolve(process.cwd(), '.amplitudeland-admin.json');
+const AUTH_SESSIONS_PATH = path.resolve(process.cwd(), '.amplitudeland-sessions.json');
+const SESSION_TTL_SECONDS = 30 * 24 * 60 * 60; // 30 days
+const SESSION_TTL_MS = SESSION_TTL_SECONDS * 1000;
 
 // In-memory CMS repository store (hydrated from content/posts/*.md + scientific seed fallback)
 let articles: Article[] = loadArticlesFromDiskOrSeed(process.cwd(), 'content/posts');
@@ -99,11 +106,6 @@ let repoConfig: {
   pagesBranch: 'gh-pages',
 };
 
-// Server-side OAuth state, GitHub session, and Auth session stores (tokens never leave the server)
-const oauthStates = new Map<string, number>();
-const githubSessions = new Map<string, GitHubSession>();
-const authSessions = new Map<string, AuthSessionRecord>();
-
 function loadStoredUsers(): StoredUserRecord[] {
   try {
     if (!fs.existsSync(AUTH_STORE_PATH)) return [];
@@ -123,7 +125,91 @@ function persistStoredUsers(list: StoredUserRecord[]) {
   }
 }
 
+function loadAdminLock(): AdminLockRecord | null {
+  try {
+    if (!fs.existsSync(ADMIN_LOCK_PATH)) return null;
+    const raw = fs.readFileSync(ADMIN_LOCK_PATH, 'utf8');
+    const parsed = JSON.parse(raw) as Partial<AdminLockRecord>;
+    if (
+      parsed &&
+      typeof parsed.username === 'string' &&
+      typeof parsed.salt === 'string' &&
+      typeof parsed.keyHash === 'string' &&
+      parsed.algorithm === 'pbkdf2-sha256'
+    ) {
+      return {
+        username: normalizeUsername(parsed.username),
+        displayName: typeof parsed.displayName === 'string' ? parsed.displayName : parsed.username,
+        algorithm: 'pbkdf2-sha256',
+        iterations: 100000,
+        salt: parsed.salt,
+        keyHash: parsed.keyHash,
+        lockedAt: typeof parsed.lockedAt === 'string' ? parsed.lockedAt : new Date().toISOString(),
+      };
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+function persistAdminLock(lock: AdminLockRecord) {
+  try {
+    fs.writeFileSync(ADMIN_LOCK_PATH, JSON.stringify(lock, null, 2) + '\n', { mode: 0o600 });
+  } catch {
+    // Non-fatal in read-only containers
+  }
+}
+
+function loadAuthSessions(): Map<string, AuthSessionRecord> {
+  const map = new Map<string, AuthSessionRecord>();
+  try {
+    if (!fs.existsSync(AUTH_SESSIONS_PATH)) return map;
+    const raw = fs.readFileSync(AUTH_SESSIONS_PATH, 'utf8');
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return map;
+    const now = Date.now();
+    for (const item of parsed) {
+      if (
+        item &&
+        typeof item.id === 'string' &&
+        typeof item.userId === 'string' &&
+        typeof item.createdAt === 'number' &&
+        now - item.createdAt <= SESSION_TTL_MS
+      ) {
+        map.set(item.id, item as AuthSessionRecord);
+      }
+    }
+  } catch {
+    // ignore corrupt session file
+  }
+  return map;
+}
+
+function persistAuthSessions() {
+  try {
+    const now = Date.now();
+    const active: AuthSessionRecord[] = [];
+    for (const [id, rec] of authSessions.entries()) {
+      if (now - rec.createdAt <= SESSION_TTL_MS) {
+        active.push(rec);
+      } else {
+        authSessions.delete(id);
+      }
+    }
+    fs.writeFileSync(AUTH_SESSIONS_PATH, JSON.stringify(active, null, 2), { mode: 0o600 });
+  } catch {
+    // Non-fatal in read-only containers
+  }
+}
+
+// Server-side OAuth state, GitHub session, and Auth session stores (tokens never leave the server)
+const oauthStates = new Map<string, number>();
+const githubSessions = new Map<string, GitHubSession>();
+const authSessions = loadAuthSessions();
+
 let users: StoredUserRecord[] = loadStoredUsers();
+let adminLock: AdminLockRecord | null = loadAdminLock();
 
 let staticManifest: StaticBuildManifest;
 let staticHtmlBySlug = new Map<string, string>();
@@ -179,7 +265,11 @@ function getEnvAdminPublicUser(): PublicUser {
 }
 
 function isAdminConfigured(): boolean {
-  return Boolean(ENV_ADMIN_LOGIN_KEY) || users.some((u) => u.role === 'admin' && u.active);
+  return (
+    Boolean(ENV_ADMIN_LOGIN_KEY) ||
+    Boolean(adminLock) ||
+    users.some((u) => u.role === 'admin' && u.active)
+  );
 }
 
 function resolveAuthUser(req: Request): PublicUser | null {
@@ -195,6 +285,11 @@ function resolveAuthUser(req: Request): PublicUser | null {
   if (!sid) return null;
   const sess = authSessions.get(sid);
   if (!sess) return null;
+  if (Date.now() - sess.createdAt > SESSION_TTL_MS) {
+    authSessions.delete(sid);
+    persistAuthSessions();
+    return null;
+  }
 
   if (sess.userId === 'env-admin' && ENV_ADMIN_LOGIN_KEY) {
     return getEnvAdminPublicUser();
@@ -202,6 +297,7 @@ function resolveAuthUser(req: Request): PublicUser | null {
   const found = users.find((u) => u.id === sess.userId && u.active);
   if (!found) {
     authSessions.delete(sid);
+    persistAuthSessions();
     return null;
   }
   return toPublicUser(found);
@@ -216,26 +312,38 @@ function buildAuthState(user: PublicUser | null): AuthSessionState {
   };
 }
 
-function setAuthCookie(res: Response, sid: string) {
-  res.append(
-    'Set-Cookie',
-    `amplitudeland_sid=${encodeURIComponent(sid)}; Path=/; HttpOnly; Secure; SameSite=None; Partitioned; Max-Age=86400`,
-  );
+function isHttpsRequest(req: Request): boolean {
+  const proto =
+    typeof req.headers['x-forwarded-proto'] === 'string'
+      ? req.headers['x-forwarded-proto'].split(',')[0].trim().toLowerCase()
+      : '';
+  return req.secure || proto === 'https' || APP_URL.startsWith('https://');
 }
 
-function clearAuthCookie(res: Response) {
-  res.append(
-    'Set-Cookie',
-    'amplitudeland_sid=; Path=/; HttpOnly; Secure; SameSite=None; Partitioned; Max-Age=0',
-  );
+function formatCookieAttrs(req: Request, maxAgeSeconds: number): string {
+  if (isHttpsRequest(req)) {
+    return `Path=/; HttpOnly; Secure; SameSite=None; Partitioned; Max-Age=${maxAgeSeconds}`;
+  }
+  return `Path=/; HttpOnly; SameSite=Lax; Max-Age=${maxAgeSeconds}`;
+}
+
+function setAuthCookie(req: Request, res: Response, sid: string) {
+  res.append('Set-Cookie', `amplitudeland_sid=${encodeURIComponent(sid)}; ${formatCookieAttrs(req, SESSION_TTL_SECONDS)}`);
+}
+
+function clearAuthCookie(req: Request, res: Response) {
+  res.append('Set-Cookie', `amplitudeland_sid=; ${formatCookieAttrs(req, 0)}`);
 }
 
 function revokeUserSessions(userId: string) {
+  let changed = false;
   for (const [sid, sess] of authSessions.entries()) {
     if (sess.userId === userId) {
       authSessions.delete(sid);
+      changed = true;
     }
   }
+  if (changed) persistAuthSessions();
 }
 
 function getSessionFromRequest(req: Request): GitHubSession | null {
@@ -252,18 +360,15 @@ function getSessionFromRequest(req: Request): GitHubSession | null {
   return null;
 }
 
-function setSessionCookie(res: Response, sessionId: string) {
+function setSessionCookie(req: Request, res: Response, sessionId: string) {
   res.append(
     'Set-Cookie',
-    `amplitudeland_gh_sid=${encodeURIComponent(sessionId)}; Path=/; HttpOnly; Secure; SameSite=None; Partitioned; Max-Age=86400`,
+    `amplitudeland_gh_sid=${encodeURIComponent(sessionId)}; ${formatCookieAttrs(req, SESSION_TTL_SECONDS)}`,
   );
 }
 
-function clearSessionCookie(res: Response) {
-  res.append(
-    'Set-Cookie',
-    'amplitudeland_gh_sid=; Path=/; HttpOnly; Secure; SameSite=None; Partitioned; Max-Age=0',
-  );
+function clearSessionCookie(req: Request, res: Response) {
+  res.append('Set-Cookie', `amplitudeland_gh_sid=; ${formatCookieAttrs(req, 0)}`);
 }
 
 function shortSha(): string {
@@ -528,9 +633,22 @@ async function startServer() {
     users = [adminRecord, ...users.filter((u) => normalizeUsername(u.username) !== normalized)];
     persistStoredUsers(users);
 
+    const portable = hashPortableAdminKey(loginKey);
+    adminLock = {
+      username: normalized,
+      displayName: adminRecord.displayName,
+      algorithm: portable.algorithm,
+      iterations: portable.iterations,
+      salt: portable.salt,
+      keyHash: portable.keyHash,
+      lockedAt: now,
+    };
+    persistAdminLock(adminLock);
+
     const sid = crypto.randomBytes(32).toString('hex');
     authSessions.set(sid, { id: sid, userId: adminRecord.id, createdAt: Date.now() });
-    setAuthCookie(res, sid);
+    persistAuthSessions();
+    setAuthCookie(req, res, sid);
     const publicUser = toPublicUser(adminRecord);
     return res.status(201).json({ sessionToken: sid, auth: buildAuthState(publicUser) });
   });
@@ -565,26 +683,54 @@ async function startServer() {
       }
     }
 
+    // Fallback to persisted salted PBKDF2 admin lock if local .amplitudeland-auth.json was absent
+    if (
+      !authedUser &&
+      adminLock &&
+      normalizeUsername(adminLock.username) === normalized &&
+      verifyPortableAdminKey(loginKey, adminLock.salt, adminLock.keyHash, adminLock.iterations)
+    ) {
+      const now = new Date().toISOString();
+      const { salt, keyHash } = hashLoginKey(loginKey);
+      const hydratedAdmin: StoredUserRecord = {
+        id: `usr-${crypto.randomBytes(6).toString('hex')}`,
+        username: adminLock.username,
+        displayName: adminLock.displayName || adminLock.username,
+        role: 'admin',
+        salt,
+        keyHash,
+        active: true,
+        createdAt: adminLock.lockedAt || now,
+        updatedAt: now,
+      };
+      users = [hydratedAdmin, ...users.filter((u) => normalizeUsername(u.username) !== adminLock!.username)];
+      persistStoredUsers(users);
+      authedUser = toPublicUser(hydratedAdmin);
+    }
+
     if (!authedUser) {
       return res.status(401).json({ error: 'Invalid username or login key.' });
     }
 
     const sid = crypto.randomBytes(32).toString('hex');
     authSessions.set(sid, { id: sid, userId: authedUser.id, createdAt: Date.now() });
-    setAuthCookie(res, sid);
+    persistAuthSessions();
+    setAuthCookie(req, res, sid);
     return res.json({ sessionToken: sid, auth: buildAuthState(authedUser) });
   });
 
   app.post('/api/auth/logout', (req, res) => {
     const authHeader = req.headers.authorization;
+    let deleted = false;
     if (authHeader && authHeader.startsWith('Bearer ')) {
-      authSessions.delete(authHeader.slice(7).trim());
+      deleted = authSessions.delete(authHeader.slice(7).trim()) || deleted;
     }
     const cookies = parseCookies(req.headers.cookie);
     if (cookies['amplitudeland_sid']) {
-      authSessions.delete(cookies['amplitudeland_sid']);
+      deleted = authSessions.delete(cookies['amplitudeland_sid']) || deleted;
     }
-    clearAuthCookie(res);
+    if (deleted) persistAuthSessions();
+    clearAuthCookie(req, res);
     return res.json({ auth: buildAuthState(null) });
   });
 
@@ -605,6 +751,7 @@ async function startServer() {
       return res.status(401).json({ error: 'Current login key is incorrect.' });
     }
 
+    const oldUsername = normalizeUsername(record.username);
     const nextUsernameRaw =
       typeof req.body?.username === 'string' && req.body.username.trim()
         ? req.body.username
@@ -637,6 +784,21 @@ async function startServer() {
     record.displayName = nextDisplayName;
     record.updatedAt = new Date().toISOString();
     persistStoredUsers(users);
+
+    if (record.role === 'admin' && (!adminLock || normalizeUsername(adminLock.username) === oldUsername)) {
+      const portable = hashPortableAdminKey(nextKey || currentLoginKey);
+      adminLock = {
+        username: nextUsername,
+        displayName: nextDisplayName,
+        algorithm: portable.algorithm,
+        iterations: portable.iterations,
+        salt: portable.salt,
+        keyHash: portable.keyHash,
+        lockedAt: record.updatedAt,
+      };
+      persistAdminLock(adminLock);
+    }
+
     return res.json({ auth: buildAuthState(toPublicUser(record)) });
   });
 
@@ -1293,7 +1455,7 @@ async function startServer() {
         repoConfig.owner = user.login;
         rebuildStaticBundle();
       }
-      setSessionCookie(res, sid);
+      setSessionCookie(req, res, sid);
 
       return res.send(`<!doctype html>
 <html>
@@ -1386,7 +1548,7 @@ async function startServer() {
       }
       rebuildStaticBundle();
 
-      setSessionCookie(res, sid);
+      setSessionCookie(req, res, sid);
       return res.json({
         sessionToken: sid,
         status: buildGitHubStatus(githubSessions.get(sid) ?? null),
@@ -2167,7 +2329,7 @@ async function startServer() {
     if (session) {
       githubSessions.delete(session.id);
     }
-    clearSessionCookie(res);
+    clearSessionCookie(req, res);
     res.json({ status: buildGitHubStatus(null) });
   });
 

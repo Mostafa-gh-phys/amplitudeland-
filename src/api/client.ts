@@ -125,6 +125,18 @@ const serverCmsApi = {
     return apiFetch<{ auth: AuthSessionState }>('/api/auth/logout', { method: 'POST' });
   },
 
+  verifyGitHubOwner(_payload: {
+    token: string;
+    username?: string;
+    displayName?: string;
+    loginKey?: string;
+    saveLockToGitHub?: boolean;
+  }): Promise<{ sessionToken: string; auth: AuthSessionState; savedLockToGitHub?: boolean }> {
+    return Promise.reject(
+      new Error('Owner token verification is only used on static GitHub Pages deployments.'),
+    );
+  },
+
   updateMyCredentials(payload: {
     currentLoginKey: string;
     username?: string;

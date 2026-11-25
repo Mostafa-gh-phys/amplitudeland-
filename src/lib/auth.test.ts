@@ -7,12 +7,14 @@ import {
   computeGitHubPagesUrl,
   generateAccessKey,
   hashLoginKey,
+  hashPortableAdminKey,
   isGitHubOwnedDomain,
   isValidCustomDomain,
   sanitizeCustomDomain,
   validateLoginKey,
   validateUsername,
   verifyLoginKey,
+  verifyPortableAdminKey,
 } from './auth.ts';
 
 test('hashLoginKey and verifyLoginKey validate matching keys with scrypt timingSafeEqual', () => {
@@ -20,6 +22,16 @@ test('hashLoginKey and verifyLoginKey validate matching keys with scrypt timingS
   assert.equal(verifyLoginKey('alpha-wave-9921', salt, keyHash), true);
   assert.equal(verifyLoginKey('wrong-key-0000', salt, keyHash), false);
   assert.equal(verifyLoginKey('', salt, keyHash), false);
+});
+
+test('hashPortableAdminKey and verifyPortableAdminKey match WebCrypto PBKDF2-SHA256 parameters', () => {
+  const locked = hashPortableAdminKey('quantum-lock-2026');
+  assert.equal(locked.algorithm, 'pbkdf2-sha256');
+  assert.equal(locked.iterations, 100000);
+  assert.equal(locked.keyHash.length, 64);
+  assert.equal(verifyPortableAdminKey('quantum-lock-2026', locked.salt, locked.keyHash, locked.iterations), true);
+  assert.equal(verifyPortableAdminKey('wrong-passphrase', locked.salt, locked.keyHash, locked.iterations), false);
+  assert.equal(verifyPortableAdminKey('quantum-lock-2026', locked.salt, '00'.repeat(32), locked.iterations), false);
 });
 
 test('validateUsername and validateLoginKey enforce safe bounds', () => {

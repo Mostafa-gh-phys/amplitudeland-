@@ -16,6 +16,7 @@ import {
   generateStaticArticleHtml,
 } from '../lib/ssg.ts';
 import type {
+  AdminLockRecord,
   Article,
   ArticleInput,
   ArticleStatus,
@@ -73,6 +74,7 @@ interface StaticWorkspaceStore {
   categories: StaticCategoryRecord[];
   commits: CommitRecord[];
   users: StaticStoredUser[];
+  adminLock?: AdminLockRecord;
   activeUserId: string | null;
   repoConfig: StaticRepoConfig;
   githubProfile: { username: string; avatarUrl?: string } | null;
@@ -184,21 +186,46 @@ function randomHex(byteLen = 12): string {
   return Array.from(arr, (b) => b.toString(16).padStart(2, '0')).join('');
 }
 
-async function hashBrowserKey(loginKey: string, existingSalt?: string): Promise<{ salt: string; keyHash: string }> {
+const PBKDF2_ITERATIONS = 100000;
+
+async function hashBrowserKey(
+  loginKey: string,
+  existingSalt?: string,
+  iterations: number = PBKDF2_ITERATIONS,
+): Promise<{ salt: string; keyHash: string }> {
   const salt = existingSalt || randomHex(16);
-  const input = new TextEncoder().encode(`${salt}:${loginKey}`);
-  if (typeof crypto !== 'undefined' && crypto.subtle) {
-    const digest = await crypto.subtle.digest('SHA-256', input);
-    const keyHash = Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, '0')).join('');
-    return { salt, keyHash };
+  const enc = new TextEncoder();
+  if (typeof crypto === 'undefined' || !crypto.subtle) {
+    throw new Error('Secure WebCrypto API is required for credential verification.');
   }
-  // Minimal deterministic fallback for non-secure contexts
-  let acc = 2166136261;
-  for (let i = 0; i < input.length; i += 1) {
-    acc ^= input[i];
-    acc = Math.imul(acc, 16777619);
+  const keyMaterial = await crypto.subtle.importKey(
+    'raw',
+    enc.encode(loginKey),
+    'PBKDF2',
+    false,
+    ['deriveBits'],
+  );
+  const bits = await crypto.subtle.deriveBits(
+    {
+      name: 'PBKDF2',
+      salt: enc.encode(salt),
+      iterations,
+      hash: 'SHA-256',
+    },
+    keyMaterial,
+    256,
+  );
+  const keyHash = Array.from(new Uint8Array(bits), (b) => b.toString(16).padStart(2, '0')).join('');
+  return { salt, keyHash };
+}
+
+function timingSafeHexEqual(a: string, b: string): boolean {
+  if (!a || !b || a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i += 1) {
+    diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
   }
-  return { salt, keyHash: (acc >>> 0).toString(16).padStart(8, '0') };
+  return diff === 0;
 }
 
 function sanitizeDomainClient(raw: string): string {
@@ -254,29 +281,72 @@ function saveStore(store: StaticWorkspaceStore) {
   }
 }
 
+async function fetchSiteBundle(): Promise<{
+  articles?: Article[];
+  adminLock?: AdminLockRecord;
+  repoConfig?: Partial<StaticRepoConfig>;
+} | null> {
+  try {
+    const base = getAppBaseUrl();
+    const res = await fetch(`${base}data/site-bundle.json`, { cache: 'no-store' });
+    if (!res.ok) return null;
+    return (await res.json()) as {
+      articles?: Article[];
+      adminLock?: AdminLockRecord;
+      repoConfig?: Partial<StaticRepoConfig>;
+    };
+  } catch {
+    return null;
+  }
+}
+
 async function getStore(): Promise<StaticWorkspaceStore> {
   if (cachedStore) return cachedStore;
   if (hydratePromise) return hydratePromise;
 
   hydratePromise = (async () => {
+    const bundle = await fetchSiteBundle();
+    const bundleLock =
+      bundle?.adminLock &&
+      bundle.adminLock.algorithm === 'pbkdf2-sha256' &&
+      typeof bundle.adminLock.username === 'string' &&
+      typeof bundle.adminLock.salt === 'string' &&
+      typeof bundle.adminLock.keyHash === 'string'
+        ? bundle.adminLock
+        : undefined;
+
     try {
       const savedRaw = window.localStorage.getItem(STORE_KEY);
       if (savedRaw) {
         const parsed = JSON.parse(savedRaw) as Partial<StaticWorkspaceStore>;
         if (Array.isArray(parsed.articles) && parsed.articles.length > 0 && parsed.repoConfig) {
+          let activeUserId = typeof parsed.activeUserId === 'string' ? parsed.activeUserId : null;
+          let usersList = Array.isArray(parsed.users) ? parsed.users : [];
+          let adminLock = bundleLock ?? parsed.adminLock;
+
+          // If repository bundle updated adminLock (e.g. rotated or newly configured), enforce it
+          if (bundleLock && parsed.adminLock && parsed.adminLock.keyHash !== bundleLock.keyHash) {
+            usersList = usersList.filter((u) => u.id !== 'usr-admin-lock');
+            if (activeUserId === 'usr-admin-lock') {
+              activeUserId = null;
+            }
+            adminLock = bundleLock;
+          }
+
           cachedStore = {
             articles: parsed.articles,
             categories: Array.isArray(parsed.categories) ? parsed.categories : DEFAULT_CATEGORIES,
             commits: Array.isArray(parsed.commits) ? parsed.commits : DEFAULT_COMMITS,
-            users: Array.isArray(parsed.users) ? parsed.users : [],
-            activeUserId: typeof parsed.activeUserId === 'string' ? parsed.activeUserId : null,
+            users: usersList,
+            adminLock,
+            activeUserId,
             repoConfig: {
-              owner: parsed.repoConfig.owner || 'amplitudeland',
-              repo: parsed.repoConfig.repo || 'amplitudeland.github.io',
-              branch: parsed.repoConfig.branch || 'main',
-              contentDir: parsed.repoConfig.contentDir || 'content/posts',
-              pagesBranch: parsed.repoConfig.pagesBranch || 'gh-pages',
-              customDomain: parsed.repoConfig.customDomain,
+              owner: parsed.repoConfig.owner || bundle?.repoConfig?.owner || 'amplitudeland',
+              repo: parsed.repoConfig.repo || bundle?.repoConfig?.repo || 'amplitudeland.github.io',
+              branch: parsed.repoConfig.branch || bundle?.repoConfig?.branch || 'main',
+              contentDir: parsed.repoConfig.contentDir || bundle?.repoConfig?.contentDir || 'content/posts',
+              pagesBranch: parsed.repoConfig.pagesBranch || bundle?.repoConfig?.pagesBranch || 'gh-pages',
+              customDomain: parsed.repoConfig.customDomain ?? bundle?.repoConfig?.customDomain,
               lastSyncedAt: parsed.repoConfig.lastSyncedAt,
               lastPagesPublishedAt: parsed.repoConfig.lastPagesPublishedAt,
               pagesEnabled: parsed.repoConfig.pagesEnabled,
@@ -287,6 +357,7 @@ async function getStore(): Promise<StaticWorkspaceStore> {
             },
             githubProfile: parsed.githubProfile ?? null,
           };
+          saveStore(cachedStore);
           return cachedStore;
         }
       }
@@ -294,42 +365,25 @@ async function getStore(): Promise<StaticWorkspaceStore> {
       // fall through to static site-bundle hydration
     }
 
-    let seedArticles = SEED_ARTICLES.map((a) => ({ ...a, tags: [...a.tags] }));
-    let seedRepo: StaticRepoConfig = {
-      owner: 'amplitudeland',
-      repo: 'amplitudeland.github.io',
-      branch: 'main',
-      contentDir: 'content/posts',
-      pagesBranch: 'gh-pages',
+    const seedArticles =
+      Array.isArray(bundle?.articles) && bundle.articles.length > 0
+        ? bundle.articles
+        : SEED_ARTICLES.map((a) => ({ ...a, tags: [...a.tags] }));
+    const seedRepo: StaticRepoConfig = {
+      owner: bundle?.repoConfig?.owner || 'amplitudeland',
+      repo: bundle?.repoConfig?.repo || 'amplitudeland.github.io',
+      branch: bundle?.repoConfig?.branch || 'main',
+      contentDir: bundle?.repoConfig?.contentDir || 'content/posts',
+      pagesBranch: bundle?.repoConfig?.pagesBranch || 'gh-pages',
+      customDomain: bundle?.repoConfig?.customDomain,
     };
-
-    try {
-      const base = getAppBaseUrl();
-      const res = await fetch(`${base}data/site-bundle.json`, { cache: 'no-store' });
-      if (res.ok) {
-        const bundle = (await res.json()) as {
-          articles?: Article[];
-          repoConfig?: Partial<StaticRepoConfig>;
-        };
-        if (Array.isArray(bundle.articles) && bundle.articles.length > 0) {
-          seedArticles = bundle.articles;
-        }
-        if (bundle.repoConfig) {
-          seedRepo = {
-            ...seedRepo,
-            ...bundle.repoConfig,
-          };
-        }
-      }
-    } catch {
-      // fall back to bundled SEED_ARTICLES
-    }
 
     const fresh: StaticWorkspaceStore = {
       articles: seedArticles,
       categories: DEFAULT_CATEGORIES.map((c) => ({ ...c })),
       commits: DEFAULT_COMMITS.map((c) => ({ ...c })),
       users: [],
+      adminLock: bundleLock,
       activeUserId: null,
       repoConfig: seedRepo,
       githubProfile: null,
@@ -358,7 +412,8 @@ function toPublicUser(u: StaticStoredUser): PublicUser {
 }
 
 function buildAuthState(store: StaticWorkspaceStore): AuthSessionState {
-  const adminConfigured = store.users.some((u) => u.role === 'admin' && u.active);
+  const adminConfigured =
+    Boolean(store.adminLock) || store.users.some((u) => u.role === 'admin' && u.active);
   const current = store.activeUserId
     ? store.users.find((u) => u.id === store.activeUserId && u.active) || null
     : null;
@@ -513,46 +568,181 @@ export const staticCmsApi = {
     return buildAuthState(store);
   },
 
-  async setupAdmin(payload: { username: string; displayName?: string; loginKey: string }) {
+  async setupAdmin(_payload: { username: string; displayName?: string; loginKey: string }) {
+    throw new Error(
+      'Open administrator claiming is disabled on public GitHub Pages. Sign in with your configured admin key or verify repository ownership with a GitHub token.',
+    );
+  },
+
+  async verifyGitHubOwner(payload: {
+    token: string;
+    username?: string;
+    displayName?: string;
+    loginKey?: string;
+    saveLockToGitHub?: boolean;
+  }) {
     const store = await getStore();
-    if (store.users.some((u) => u.role === 'admin' && u.active)) {
-      throw new Error('An administrator account is already configured in this browser.');
+    const cleanToken = payload.token.trim();
+    if (!cleanToken) {
+      throw new Error('GitHub Personal Access Token is required to verify repository ownership.');
     }
-    const username = payload.username.trim().toLowerCase();
-    if (username.length < 3 || username.length > 32) {
-      throw new Error('Username must be between 3 and 32 characters.');
+
+    const userRes = await ghFetch('/user', cleanToken);
+    if (!userRes.ok) {
+      throw new Error(`GitHub rejected this token (${userRes.status}). Verify scopes and expiration.`);
     }
-    if (payload.loginKey.length < 8) {
-      throw new Error('Login key must be at least 8 characters long.');
+    const ghUser = (await userRes.json()) as { login: string; name?: string; avatar_url?: string };
+
+    const owner = store.repoConfig.owner;
+    const repo = store.repoConfig.repo;
+    const repoRes = await ghFetch(
+      `/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}`,
+      cleanToken,
+    );
+    if (!repoRes.ok) {
+      throw new Error(
+        `Unable to verify permissions on ${owner}/${repo} (${repoRes.status}). Ensure this token can access that repository.`,
+      );
     }
-    const { salt, keyHash } = await hashBrowserKey(payload.loginKey);
+    const repoData = (await repoRes.json()) as {
+      owner?: { login?: string };
+      permissions?: { push?: boolean; admin?: boolean };
+    };
+    const isOwnerLogin = repoData.owner?.login?.toLowerCase() === ghUser.login.toLowerCase();
+    const canWrite = Boolean(repoData.permissions?.push || repoData.permissions?.admin || isOwnerLogin);
+    if (!canWrite) {
+      throw new Error(
+        `GitHub account @${ghUser.login} does not have push permission to ${owner}/${repo}.`,
+      );
+    }
+
+    setPatToken(cleanToken);
+    store.githubProfile = { username: ghUser.login, avatarUrl: ghUser.avatar_url };
+
+    const desiredUsername = (payload.username?.trim() || store.adminLock?.username || ghUser.login)
+      .toLowerCase()
+      .replace(/[^a-z0-9_.-]/g, '-');
+    if (desiredUsername.length < 3 || desiredUsername.length > 32) {
+      throw new Error('Administrator username must be between 3 and 32 characters.');
+    }
+    const desiredDisplay = payload.displayName?.trim() || ghUser.name?.trim() || ghUser.login;
     const now = new Date().toISOString();
-    const admin: StaticStoredUser = {
-      id: `usr-${randomHex(6)}`,
-      username,
-      displayName: payload.displayName?.trim() || username,
+
+    let nextSalt = randomHex(16);
+    let nextHash = randomHex(32);
+    let savedLockToGitHub = false;
+
+    if (payload.loginKey) {
+      if (payload.loginKey.length < 8) {
+        throw new Error('Administrator login key must be at least 8 characters long.');
+      }
+      const hashed = await hashBrowserKey(payload.loginKey);
+      nextSalt = hashed.salt;
+      nextHash = hashed.keyHash;
+      const lockRecord: AdminLockRecord = {
+        username: desiredUsername,
+        displayName: desiredDisplay,
+        algorithm: 'pbkdf2-sha256',
+        iterations: PBKDF2_ITERATIONS,
+        salt: nextSalt,
+        keyHash: nextHash,
+        lockedAt: now,
+      };
+      store.adminLock = lockRecord;
+
+      if (payload.saveLockToGitHub) {
+        const lockPath = `/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/contents/.amplitudeland-admin.json`;
+        let existingSha: string | undefined;
+        const existingRes = await ghFetch(
+          `${lockPath}?ref=${encodeURIComponent(store.repoConfig.branch)}`,
+          cleanToken,
+        );
+        if (existingRes.ok) {
+          const existingJson = (await existingRes.json()) as { sha?: string };
+          existingSha = existingJson.sha;
+        }
+        const putLock = await ghFetch(lockPath, cleanToken, {
+          method: 'PUT',
+          body: JSON.stringify({
+            message: `security(auth): configure administrator lock for @${desiredUsername}`,
+            content: utf8ToBase64(JSON.stringify(lockRecord, null, 2) + '\n'),
+            branch: store.repoConfig.branch,
+            ...(existingSha ? { sha: existingSha } : {}),
+          }),
+        });
+        if (!putLock.ok) {
+          const msg = await putLock.text();
+          throw new Error(`Verified owner, but failed to save .amplitudeland-admin.json (${putLock.status}): ${msg.slice(0, 140)}`);
+        }
+        savedLockToGitHub = true;
+      }
+    }
+
+    const adminId = store.adminLock ? 'usr-admin-lock' : `usr-owner-${ghUser.login.toLowerCase()}`;
+    const existing = store.users.find((u) => u.id === adminId);
+    const adminUser: StaticStoredUser = {
+      id: adminId,
+      username: desiredUsername,
+      displayName: desiredDisplay,
       role: 'admin',
-      salt,
-      keyHash,
+      salt: existing && !payload.loginKey ? existing.salt : nextSalt,
+      keyHash: existing && !payload.loginKey ? existing.keyHash : nextHash,
       active: true,
-      createdAt: now,
+      createdAt: existing?.createdAt || now,
       updatedAt: now,
     };
-    store.users = [admin, ...store.users.filter((u) => u.username !== username)];
-    store.activeUserId = admin.id;
+
+    store.users = [adminUser, ...store.users.filter((u) => u.id !== adminId && u.username !== desiredUsername)];
+    store.activeUserId = adminUser.id;
     saveStore(store);
-    return { sessionToken: `static-${admin.id}`, auth: buildAuthState(store) };
+
+    return {
+      sessionToken: `static-${adminUser.id}`,
+      auth: buildAuthState(store),
+      savedLockToGitHub,
+    };
   },
 
   async login(payload: { username: string; loginKey: string }) {
     const store = await getStore();
     const username = payload.username.trim().toLowerCase();
+
+    if (store.adminLock && store.adminLock.username.toLowerCase() === username) {
+      const { keyHash } = await hashBrowserKey(
+        payload.loginKey,
+        store.adminLock.salt,
+        store.adminLock.iterations || PBKDF2_ITERATIONS,
+      );
+      if (timingSafeHexEqual(keyHash, store.adminLock.keyHash)) {
+        const now = new Date().toISOString();
+        const adminUser: StaticStoredUser = {
+          id: 'usr-admin-lock',
+          username: store.adminLock.username.toLowerCase(),
+          displayName: store.adminLock.displayName || store.adminLock.username,
+          role: 'admin',
+          salt: store.adminLock.salt,
+          keyHash,
+          active: true,
+          createdAt: store.adminLock.lockedAt || now,
+          updatedAt: now,
+        };
+        store.users = [
+          adminUser,
+          ...store.users.filter((u) => u.id !== 'usr-admin-lock' && u.username !== adminUser.username),
+        ];
+        store.activeUserId = adminUser.id;
+        saveStore(store);
+        return { sessionToken: `static-${adminUser.id}`, auth: buildAuthState(store) };
+      }
+      throw new Error('Invalid username or login key.');
+    }
+
     const candidate = store.users.find((u) => u.username === username && u.active);
     if (!candidate) {
       throw new Error('Invalid username or login key.');
     }
     const { keyHash } = await hashBrowserKey(payload.loginKey, candidate.salt);
-    if (keyHash !== candidate.keyHash) {
+    if (!timingSafeHexEqual(keyHash, candidate.keyHash)) {
       throw new Error('Invalid username or login key.');
     }
     store.activeUserId = candidate.id;
@@ -563,6 +753,7 @@ export const staticCmsApi = {
   async logout() {
     const store = await getStore();
     store.activeUserId = null;
+    setPatToken(null);
     saveStore(store);
     return { auth: buildAuthState(store) };
   },
@@ -576,7 +767,7 @@ export const staticCmsApi = {
     const store = await getStore();
     const current = requireStaticAuth(store);
     const check = await hashBrowserKey(payload.currentLoginKey, current.salt);
-    if (check.keyHash !== current.keyHash) {
+    if (!timingSafeHexEqual(check.keyHash, current.keyHash)) {
       throw new Error('Current login key is incorrect.');
     }
     if (payload.username?.trim()) {
@@ -598,6 +789,17 @@ export const staticCmsApi = {
       current.keyHash = next.keyHash;
     }
     current.updatedAt = new Date().toISOString();
+    if (current.id === 'usr-admin-lock' || (current.role === 'admin' && store.adminLock)) {
+      store.adminLock = {
+        username: current.username,
+        displayName: current.displayName,
+        algorithm: 'pbkdf2-sha256',
+        iterations: PBKDF2_ITERATIONS,
+        salt: current.salt,
+        keyHash: current.keyHash,
+        lockedAt: current.updatedAt,
+      };
+    }
     saveStore(store);
     return { auth: buildAuthState(store) };
   },

@@ -126,6 +126,16 @@ export interface AuthSessionState {
   user: PublicUser | null;
 }
 
+export interface AdminLockRecord {
+  username: string;
+  displayName: string;
+  algorithm: 'pbkdf2-sha256';
+  iterations: 100000;
+  salt: string;
+  keyHash: string;
+  lockedAt: string;
+}
+
 export interface ArticleInput {
   title: string;
   slug?: string;

@@ -1,14 +1,60 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { build as viteBuild } from 'vite';
+import { hashPortableAdminKey, normalizeUsername } from '../src/lib/auth.ts';
 import { loadArticlesFromDiskOrSeed, resolveRepoTargetFromEnv } from '../src/lib/contentLoader.ts';
 import { buildGitHubPagesBundle } from '../src/lib/ssg.ts';
+import type { AdminLockRecord } from '../src/lib/types.ts';
+
+function resolveAdminLockForStaticBundle(rootDir: string): AdminLockRecord | undefined {
+  const lockPath = path.resolve(rootDir, '.amplitudeland-admin.json');
+  try {
+    if (fs.existsSync(lockPath)) {
+      const parsed = JSON.parse(fs.readFileSync(lockPath, 'utf8')) as Partial<AdminLockRecord>;
+      if (
+        parsed &&
+        typeof parsed.username === 'string' &&
+        typeof parsed.salt === 'string' &&
+        typeof parsed.keyHash === 'string' &&
+        parsed.algorithm === 'pbkdf2-sha256'
+      ) {
+        return {
+          username: normalizeUsername(parsed.username),
+          displayName: typeof parsed.displayName === 'string' ? parsed.displayName : parsed.username,
+          algorithm: 'pbkdf2-sha256',
+          iterations: 100000,
+          salt: parsed.salt,
+          keyHash: parsed.keyHash,
+          lockedAt: typeof parsed.lockedAt === 'string' ? parsed.lockedAt : new Date().toISOString(),
+        };
+      }
+    }
+  } catch {
+    // ignore malformed lock file
+  }
+  const envKey = (process.env.ADMIN_LOGIN_KEY || '').trim();
+  if (envKey.length >= 8) {
+    const username = normalizeUsername(process.env.ADMIN_USERNAME || 'admin');
+    const portable = hashPortableAdminKey(envKey);
+    return {
+      username,
+      displayName: 'Administrator',
+      algorithm: portable.algorithm,
+      iterations: portable.iterations,
+      salt: portable.salt,
+      keyHash: portable.keyHash,
+      lockedAt: new Date().toISOString(),
+    };
+  }
+  return undefined;
+}
 
 const rootDir = process.cwd();
 const outDir = path.resolve(rootDir, 'dist-pages');
 
 const articles = loadArticlesFromDiskOrSeed(rootDir, 'content/posts');
 const target = resolveRepoTargetFromEnv(rootDir);
+const adminLock = resolveAdminLockForStaticBundle(rootDir);
 
 const isRootSite =
   Boolean(target.customDomain) ||
@@ -62,6 +108,7 @@ fs.writeFileSync(
   JSON.stringify(
     {
       articles,
+      ...(adminLock ? { adminLock } : {}),
       repoConfig: {
         owner: target.owner,
         repo: target.repo,
