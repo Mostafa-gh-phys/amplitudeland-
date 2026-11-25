@@ -147,13 +147,24 @@ export function getFontPairingOption(id: string | null | undefined): FontPairing
 
 export function parseArticleSlugFromPath(pathname: string, search: string): string | null {
   const cleanPath = pathname.replace(/\/+$/, '');
-  const pathMatch = cleanPath.match(/^\/posts\/([^/]+)$/);
+  const pathMatch = cleanPath.match(/(?:^|\/)posts\/([^/]+)$/);
   if (pathMatch) {
     return decodeURIComponent(pathMatch[1]);
   }
   const params = new URLSearchParams(search);
   const querySlug = params.get('article');
   return querySlug ? querySlug.trim() || null : null;
+}
+
+export function resolveAppAssetUrl(src?: string): string | undefined {
+  if (!src) return undefined;
+  if (/^(https?:|data:|blob:)/i.test(src)) return src;
+  const metaEnv = (import.meta as { env?: { BASE_URL?: string } }).env;
+  const base = metaEnv?.BASE_URL || '/';
+  if (base !== '/' && src.startsWith('/')) {
+    return `${base.replace(/\/+$/, '')}${src}`;
+  }
+  return src;
 }
 
 export async function copyTextSafely(text: string): Promise<boolean> {

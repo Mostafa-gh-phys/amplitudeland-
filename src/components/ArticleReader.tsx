@@ -1,7 +1,7 @@
 import { ArrowLeft, Check, Copy, Edit3 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { cmsApi } from '../api/client.ts';
-import { copyTextSafely } from '../lib/appearance.ts';
+import { copyTextSafely, resolveAppAssetUrl } from '../lib/appearance.ts';
 import type { Article, TocHeading } from '../lib/types.ts';
 import { PlateImage } from './PlateImage.tsx';
 
@@ -181,7 +181,7 @@ export function ArticleReader({ slug, onBack, onEditInCms }: ArticleReaderProps)
               <div className="mt-5 flex items-center gap-3">
                 {article.authorAvatar && (
                   <img
-                    src={article.authorAvatar}
+                    src={resolveAppAssetUrl(article.authorAvatar)}
                     alt={article.author}
                     referrerPolicy="no-referrer"
                     className="h-10 w-10 rounded-full border border-stone-200 object-cover dark:border-stone-700"

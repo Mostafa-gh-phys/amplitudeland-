@@ -11,6 +11,7 @@ import type {
   TocHeading,
   UserRole,
 } from '../lib/types.ts';
+import { isStaticBuildFlagEnabled, staticCmsApi } from './staticAdapter.ts';
 
 let memoryAuthToken: string | null = null;
 let memoryGithubToken: string | null = null;
@@ -97,7 +98,11 @@ export interface GitHubRepoSummary {
   htmlUrl: string;
 }
 
-export const cmsApi = {
+export function isStaticPagesApp(): boolean {
+  return isStaticBuildFlagEnabled();
+}
+
+const serverCmsApi = {
   getAuthSession() {
     return apiFetch<AuthSessionState>('/api/auth/session');
   },
@@ -396,3 +401,7 @@ export const cmsApi = {
     return apiFetch<{ filename: string; code: string }>('/api/ssg/workflow');
   },
 };
+
+export const cmsApi: typeof serverCmsApi = isStaticPagesApp()
+  ? (staticCmsApi as typeof serverCmsApi)
+  : serverCmsApi;

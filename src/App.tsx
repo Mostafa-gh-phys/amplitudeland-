@@ -6,6 +6,7 @@ import 'katex/dist/katex.min.css';
 import { useCallback, useEffect, useState } from 'react';
 import {
   cmsApi,
+  isStaticPagesApp,
   setAuthSessionToken,
   setGitHubSessionToken,
   type CategorySummary,
@@ -133,9 +134,11 @@ export default function App() {
     return () => window.removeEventListener('popstate', onPopState);
   }, []);
 
+  const appBase = (import.meta as { env?: { BASE_URL?: string } }).env?.BASE_URL || '/';
+
   const syncUrlToRoot = () => {
-    if (window.location.pathname !== '/' || window.location.search) {
-      window.history.pushState(null, '', '/');
+    if (window.location.pathname !== appBase || window.location.search) {
+      window.history.pushState(null, '', appBase);
     }
   };
 
@@ -229,8 +232,11 @@ export default function App() {
     setAuthPrompt(null);
     setActiveArticleSlug(slug);
     setSection('journal');
-    const nextUrl = `/posts/${encodeURIComponent(slug)}`;
-    if (window.location.pathname !== nextUrl) {
+    const nextUrl = isStaticPagesApp()
+      ? `${appBase}?article=${encodeURIComponent(slug)}`
+      : `/posts/${encodeURIComponent(slug)}`;
+    const currentFull = `${window.location.pathname}${window.location.search}`;
+    if (currentFull !== nextUrl) {
       window.history.pushState(null, '', nextUrl);
     }
     window.scrollTo({ top: 0 });

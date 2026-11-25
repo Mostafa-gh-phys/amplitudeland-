@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { BookOpen } from 'lucide-react';
+import { resolveAppAssetUrl } from '../lib/appearance.ts';
 
 interface PlateImageProps {
   src?: string;
@@ -17,15 +18,16 @@ export function PlateImage({
   className = '',
 }: PlateImageProps) {
   const [failed, setFailed] = useState(false);
+  const resolvedSrc = resolveAppAssetUrl(src);
 
   return (
     <figure className={`m-0 flex flex-col ${className}`}>
       <div
         className={`relative overflow-hidden rounded-md border border-stone-200 bg-stone-100 dark:border-stone-800 dark:bg-stone-900 ${aspectClass}`}
       >
-        {src && !failed ? (
+        {resolvedSrc && !failed ? (
           <img
-            src={src}
+            src={resolvedSrc}
             alt={alt}
             referrerPolicy="no-referrer"
             onError={() => setFailed(true)}

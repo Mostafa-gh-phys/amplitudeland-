@@ -5,6 +5,7 @@ import type { FontPairingId, ThemeId } from '../lib/appearance.ts';
 import type { Article } from '../lib/types.ts';
 import { AppearanceMenu } from './AppearanceMenu.tsx';
 import { PlateImage } from './PlateImage.tsx';
+import { resolveAppAssetUrl } from '../lib/appearance.ts';
 
 interface JournalHomeProps {
   articles: Article[];
@@ -161,7 +162,7 @@ export function JournalHome({
                     <div className="flex items-center gap-3">
                       {leadArticle.authorAvatar && (
                         <img
-                          src={leadArticle.authorAvatar}
+                          src={resolveAppAssetUrl(leadArticle.authorAvatar)}
                           alt={leadArticle.author}
                           referrerPolicy="no-referrer"
                           className="h-10 w-10 rounded-full border border-stone-200 object-cover dark:border-stone-700"

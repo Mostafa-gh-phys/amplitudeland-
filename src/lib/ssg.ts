@@ -22,6 +22,11 @@ function escapeXml(value: string): string {
   return escapeHtml(value);
 }
 
+const utf8Encoder = new TextEncoder();
+function utf8ByteLength(value: string): number {
+  return utf8Encoder.encode(value).length;
+}
+
 function resolveStaticAssetPath(
   src: string | undefined,
   depthPrefix: string,
@@ -693,7 +698,7 @@ export function buildStaticSite(
 
   for (const article of published) {
     const html = generateStaticArticleHtml(article, baseUrl, { isGitHubPages: true });
-    const bytes = Buffer.byteLength(html, 'utf8');
+    const bytes = utf8ByteLength(html);
     totalBytes += bytes;
     htmlBySlug.set(article.slug, html);
 
@@ -772,7 +777,7 @@ export function buildGitHubPagesBundle(
     });
   }
 
-  const totalBytes = files.reduce((acc, f) => acc + Buffer.byteLength(f.content, 'utf8'), 0);
+  const totalBytes = files.reduce((acc, f) => acc + utf8ByteLength(f.content), 0);
   return {
     pagesUrl,
     fileCount: files.length,
