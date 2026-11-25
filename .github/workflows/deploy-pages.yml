@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -17,13 +17,17 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    outputs:
+      pages_mode: ${{ steps.detect_pages.outputs.mode }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22'
+
       - name: Install dependencies
         run: |
           if [ -f package-lock.json ]; then
@@ -31,16 +35,65 @@ jobs:
           else
             npm install --no-audit --no-fund
           fi
+
       - name: Build static AmplitudeLand GitHub Pages site
         run: npm run build:pages
+
+      - name: Detect GitHub Pages mode
+        id: detect_pages
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          STATUS_CODE=$(curl -sS -o /tmp/pages-info.json -w "%{http_code}" \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            "https://api.github.com/repos/${{ github.repository }}/pages" || echo "000")
+          BUILD_TYPE=""
+          if [ "$STATUS_CODE" = "200" ]; then
+            BUILD_TYPE=$(node -e "try{const d=JSON.parse(require('fs').readFileSync('/tmp/pages-info.json','utf8'));console.log(d.build_type||'');}catch{}")
+          fi
+          echo "Pages API HTTP status: $STATUS_CODE, build_type: ${BUILD_TYPE:-none}"
+          if [ "$BUILD_TYPE" = "workflow" ]; then
+            echo "mode=actions" >> "$GITHUB_OUTPUT"
+          else
+            echo "mode=branch" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Setup Pages
+        if: steps.detect_pages.outputs.mode == 'actions'
         uses: actions/configure-pages@v5
+
       - name: Upload Pages artifact
+        if: steps.detect_pages.outputs.mode == 'actions'
         uses: actions/upload-pages-artifact@v3
         with:
           path: dist-pages
 
+      - name: Publish static site to gh-pages branch
+        if: steps.detect_pages.outputs.mode == 'branch'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          WORK=$(mktemp -d)
+          cp -a dist-pages/. "$WORK"/
+          cd "$WORK"
+          git init
+          git checkout -b gh-pages
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          SHORT_SHA=$(printf '%s' "${GITHUB_SHA:-manual}" | cut -c1-7)
+          git commit -m "pages(deploy): build AmplitudeLand static site ($SHORT_SHA)"
+          git push --force "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" gh-pages:refs/heads/gh-pages
+          {
+            echo "### AmplitudeLand static site published to \`gh-pages\`"
+            echo ""
+            echo "Built \`dist-pages/\` and pushed it to the \`gh-pages\` branch cleanly."
+            echo "To serve live: open **Settings -> Pages** and either select **Source: GitHub Actions** (then re-run this workflow) or **Deploy from a branch -> \`gh-pages\` / \`(root)\`**."
+          } >> "$GITHUB_STEP_SUMMARY"
+
   deploy:
+    if: needs.build.outputs.pages_mode == 'actions'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

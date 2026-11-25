@@ -758,7 +758,7 @@ export function GitHubSsgSettings({
                   >
                     GitHub Repository Settings → Pages
                   </a>{' '}
-                  and set Source to Branch <code className="font-mono">{pagesBranch || 'gh-pages'}</code> / <code className="font-mono">(root)</code>.
+                  and set Source to <code className="font-mono">GitHub Actions</code> or Branch <code className="font-mono">{pagesBranch || 'gh-pages'}</code> / <code className="font-mono">(root)</code>.
                 </p>
               )}
             </div>

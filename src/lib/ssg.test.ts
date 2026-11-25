@@ -80,6 +80,8 @@ test('GitHub Actions deploy-pages workflow matches generator and runs npm run bu
   assert.equal(diskWorkflow, generateGitHubPagesWorkflowYaml('main'));
   assert.match(diskWorkflow, /npm run build:pages/);
   assert.match(diskWorkflow, /path:\s*dist-pages/);
+  assert.match(diskWorkflow, /id:\s*detect_pages/);
+  assert.match(diskWorkflow, /refs\/heads\/gh-pages/);
   assert.match(diskWorkflow, /actions\/deploy-pages@v4/);
 });
 
