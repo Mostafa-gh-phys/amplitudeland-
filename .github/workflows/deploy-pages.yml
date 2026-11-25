@@ -70,7 +70,6 @@ jobs:
           path: dist-pages
 
       - name: Publish static site to gh-pages branch
-        if: steps.detect_pages.outputs.mode == 'branch'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -86,10 +85,14 @@ jobs:
           git commit -m "pages(deploy): build AmplitudeLand static site ($SHORT_SHA)"
           git push --force "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" gh-pages:refs/heads/gh-pages
           {
-            echo "### AmplitudeLand static site published to \`gh-pages\`"
+            echo "### AmplitudeLand static site built (\`$SHORT_SHA\`)"
             echo ""
-            echo "Built \`dist-pages/\` and pushed it to the \`gh-pages\` branch cleanly."
-            echo "To serve live: open **Settings -> Pages** and either select **Source: GitHub Actions** (then re-run this workflow) or **Deploy from a branch -> \`gh-pages\` / \`(root)\`**."
+            echo "- \`gh-pages\` branch updated with the full React AmplitudeLand site (\`dist-pages/\`)."
+            if [ "${{ steps.detect_pages.outputs.mode }}" = "actions" ]; then
+              echo "- Deploying via **GitHub Actions** (\`actions/deploy-pages@v4\`)."
+            else
+              echo "- GitHub Pages mode is not set to **GitHub Actions** yet; \`gh-pages\` branch was updated so **Deploy from a branch -> \`gh-pages\` / \`(root)\`** serves the latest site."
+            fi
           } >> "$GITHUB_STEP_SUMMARY"
 
   deploy:
