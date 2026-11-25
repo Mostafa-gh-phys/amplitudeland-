@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Topological Protection and Threshold Scaling in Planar Surface Codes — AmplitudeLand</title>
+    <meta name="description" content="We derive the sub-threshold logical error suppression law for planar stabilizer lattices under asymmetric Pauli-Z biased noise and validate decoder runtime scaling up to code distance d = 21." />
+    <meta name="keywords" content="Surface Codes, Error Correction, Stabilizers, Fault Tolerance" />
+    <meta name="author" content="Dr. Elena Rostova" />
+    <link rel="canonical" href="https://Mostafa-gh-phys.github.io/amplitudeland-/posts/topological-protection-surface-codes/" />
+    <meta property="og:type" content="article" />
+    <meta property="og:site_name" content="AmplitudeLand" />
+    <meta property="og:title" content="Topological Protection and Threshold Scaling in Planar Surface Codes" />
+    <meta property="og:description" content="We derive the sub-threshold logical error suppression law for planar stabilizer lattices under asymmetric Pauli-Z biased noise and validate decoder runtime scaling up to code distance d = 21." />
+    <meta property="og:url" content="https://Mostafa-gh-phys.github.io/amplitudeland-/posts/topological-protection-surface-codes/" />
+    <meta property="article:published_time" content="2026-11-12" />
+    <meta property="article:modified_time" content="2026-11-18" />
+    <meta property="article:section" content="Quantum Physics" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Topological Protection and Threshold Scaling in Planar Surface Codes" />
+    <meta name="twitter:description" content="We derive the sub-threshold logical error suppression law for planar stabilizer lattices under asymmetric Pauli-Z biased noise and validate decoder runtime scaling up to code distance d = 21." />
+    <script>(function(){try{var t=localStorage.getItem('amplitudeland_pages_theme');if(t){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+    <link rel="stylesheet" href="../../assets/katex/katex.min.css" crossorigin="anonymous" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=JetBrains+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+    <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "ScholarlyArticle",
+  "headline": "Topological Protection and Threshold Scaling in Planar Surface Codes",
+  "abstract": "We derive the sub-threshold logical error suppression law for planar stabilizer lattices under asymmetric Pauli-Z biased noise and validate decoder runtime scaling up to code distance d = 21.",
+  "author": {
+    "@type": "Person",
+    "name": "Dr. Elena Rostova",
+    "affiliation": {
+      "@type": "Organization",
+      "name": "Institute for Quantum Optics, Zurich"
+    }
+  },
+  "datePublished": "2026-11-12",
+  "dateModified": "2026-11-18",
+  "articleSection": "Quantum Physics",
+  "keywords": "Surface Codes, Error Correction, Stabilizers, Fault Tolerance",
+  "identifier": "10.48550/ax.2026.0114",
+  "url": "https://Mostafa-gh-phys.github.io/amplitudeland-/posts/topological-protection-surface-codes/",
+  "publisher": {
+    "@type": "Organization",
+    "name": "AmplitudeLand"
+  }
+}</script>
+    <style>
+      :root {
+        --bg: #FAF9F6;
+        --surface: #FFFFFF;
+        --surface-muted: #F3F1EC;
+        --border: #E4E0D8;
+        --text: #1C1917;
+        --text-muted: #57534E;
+        --accent: #1D4ED8;
+        --accent-hover: #1E40AF;
+        --font-serif: "Fraunces", Georgia, Cambria, serif;
+        --font-sans: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+        --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme="archival-paper"]):not([data-theme="sepia-folio"]) {
+          --bg: #0F1115;
+          --surface: #161A22;
+          --surface-muted: #1E232E;
+          --border: #272D3A;
+          --text: #F1F5F9;
+          --text-muted: #94A3B8;
+          --accent: #60A5FA;
+          --accent-hover: #93C5FD;
+        }
+      }
+      :root[data-theme="archival-paper"] {
+        --bg: #FAF9F6; --surface: #FFFFFF; --surface-muted: #F3F1EC; --border: #E4E0D8;
+        --text: #1C1917; --text-muted: #57534E; --accent: #1D4ED8; --accent-hover: #1E40AF;
+      }
+      :root[data-theme="sepia-folio"] {
+        --bg: #F4EFE6; --surface: #FBF8F1; --surface-muted: #EAE2D3; --border: #DDD3C2;
+        --text: #292018; --text-muted: #665748; --accent: #9A3412; --accent-hover: #7C2D12;
+      }
+      :root[data-theme="obsidian-ink"] {
+        --bg: #0F1115; --surface: #161A22; --surface-muted: #1E232E; --border: #272D3A;
+        --text: #F1F5F9; --text-muted: #94A3B8; --accent: #60A5FA; --accent-hover: #93C5FD;
+      }
+      :root[data-theme="midnight-observatory"] {
+        --bg: #080D1A; --surface: #0F172A; --surface-muted: #172036; --border: #1E293B;
+        --text: #E2E8F0; --text-muted: #94A3B8; --accent: #38BDF8; --accent-hover: #7DD3FC;
+      }
+      * { box-sizing: border-box; }
+      body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font-sans); line-height: 1.75; transition: background 0.15s, color 0.15s; }
+
+      header { position: sticky; top: 0; z-index: 40; border-bottom: 1px solid var(--border); background: var(--surface); }
+      .header-inner { max-width: 72rem; margin: 0 auto; padding: 0.9rem 1.5rem; display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+      .brand { font-family: var(--font-serif); font-size: 1.35rem; font-weight: 600; color: var(--text); text-decoration: none; }
+      .header-nav { display: flex; align-items: center; gap: 1rem; font-size: 0.84rem; font-weight: 600; }
+      .header-nav a { color: var(--accent); text-decoration: none; }
+      .header-nav a:hover { text-decoration: underline; }
+      .theme-select { background: var(--surface-muted); color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 0.3rem 0.55rem; font-size: 0.78rem; font-family: var(--font-sans); cursor: pointer; }
+      .page-wrap { max-width: 72rem; margin: 2.5rem auto 5rem; padding: 0 1.5rem; display: grid; gap: 3rem; grid-template-columns: minmax(0, 1fr); }
+      @media (min-width: 1024px) { .page-wrap { grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr); align-items: start; } }
+      .meta { display: flex; flex-wrap: wrap; gap: 0.45rem; font-size: 0.8125rem; color: var(--text-muted); margin-bottom: 0.85rem; }
+      .meta .cat { color: var(--accent); font-weight: 600; }
+      h1 { font-family: var(--font-serif); font-size: clamp(2rem, 3.8vw, 2.75rem); line-height: 1.15; margin: 0 0 1.1rem; font-weight: 600; letter-spacing: -0.015em; }
+      .author-row { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.75rem; }
+      .author-avatar { width: 40px; height: 40px; border-radius: 9999px; object-fit: cover; border: 1px solid var(--border); }
+      .author-name { font-size: 0.9rem; font-weight: 600; color: var(--text); }
+      .author-aff { font-size: 0.78rem; color: var(--text-muted); }
+      .abstract { border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 1.25rem 0; margin: 1.5rem 0 2rem; }
+      .abstract-label { font-size: 0.75rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0.35rem; }
+      .abstract p { margin: 0; font-size: 1.03rem; color: var(--text); }
+      .cover-plate { margin: 0 0 2.25rem; }
+      .cover-frame { overflow: hidden; border-radius: 6px; border: 1px solid var(--border); aspect-ratio: 16 / 9; background: var(--surface-muted); }
+      .cover-frame img { width: 100%; height: 100%; object-fit: cover; display: block; }
+      .cover-plate figcaption { margin-top: 0.5rem; font-family: var(--font-serif); font-style: italic; font-size: 0.8rem; color: var(--text-muted); }
+      article.prose { max-width: 44rem; font-size: 1.03rem; }
+      article.prose h2 { font-family: var(--font-serif); font-size: 1.55rem; margin: 2.25rem 0 0.85rem; border-bottom: 1px solid var(--border); padding-bottom: 0.4rem; scroll-margin-top: 5rem; }
+      article.prose h3 { font-family: var(--font-serif); font-size: 1.2rem; margin: 1.75rem 0 0.65rem; scroll-margin-top: 5rem; }
+      article.prose p { margin: 0 0 1.2rem; }
+      article.prose blockquote { margin: 1.5rem 0; padding: 0.9rem 1.15rem; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); font-family: var(--font-serif); font-style: italic; font-size: 1.08rem; }
+      article.prose pre { background: var(--surface-muted); border: 1px solid var(--border); padding: 1rem; border-radius: 6px; overflow-x: auto; font-family: var(--font-mono); font-size: 0.84rem; line-height: 1.6; }
+      article.prose code { font-family: var(--font-mono); background: var(--surface-muted); padding: 0.15rem 0.35rem; border-radius: 4px; font-size: 0.87em; }
+      article.prose pre code { background: transparent; padding: 0; }
+      article.prose table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; font-size: 0.9rem; font-variant-numeric: tabular-nums; }
+      article.prose th, article.prose td { padding: 0.6rem 0.8rem; border-bottom: 1px solid var(--border); text-align: left; }
+      article.prose th { font-weight: 600; border-bottom-width: 2px; }
+      .katex-display { overflow-x: auto; overflow-y: hidden; padding: 0.65rem 0.25rem; }
+      .bibtex-box { margin-top: 3rem; padding-top: 1.75rem; border-top: 1px solid var(--border); max-width: 44rem; }
+      .bibtex-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; }
+      .bibtex-head h2 { font-family: var(--font-serif); font-size: 1.15rem; margin: 0; }
+      .copy-btn { background: var(--surface); border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 0.35rem 0.75rem; font-size: 0.78rem; font-weight: 600; cursor: pointer; }
+      .copy-btn:hover { background: var(--surface-muted); }
+      .bibtex-pre { background: var(--surface-muted); border: 1px solid var(--border); border-radius: 6px; padding: 1rem; font-family: var(--font-mono); font-size: 0.78rem; overflow-x: auto; margin: 0; }
+      aside { position: sticky; top: 5rem; display: flex; flex-direction: column; gap: 1.5rem; }
+      .side-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem; }
+      .side-title { font-size: 0.75rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; }
+      .toc-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.85rem; }
+      .toc-list li.toc-h3 { padding-left: 0.9rem; font-size: 0.82rem; }
+      .toc-list a { color: var(--text); text-decoration: none; }
+      .toc-list a:hover { color: var(--accent); text-decoration: underline; }
+      .dossier { margin: 0; font-size: 0.78rem; }
+      .dossier-row { display: flex; justify-content: space-between; gap: 1rem; padding: 0.55rem 0; border-bottom: 1px solid var(--border); }
+      .dossier-row:last-child { border-bottom: 0; }
+      .dossier dt { color: var(--text-muted); }
+      .dossier dd { margin: 0; font-weight: 500; text-align: right; word-break: break-word; }
+      .mono { font-family: var(--font-mono); }
+      footer { max-width: 72rem; margin: 0 auto; padding: 1.75rem 1.5rem 3rem; border-top: 1px solid var(--border); font-size: 0.8125rem; color: var(--text-muted); display: flex; flex-wrap: wrap; justify-content: space-between; gap: 1rem; }
+      footer a { color: var(--accent); text-decoration: none; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="header-inner">
+        <a href="../../index.html" class="brand">AmplitudeLand</a>
+        <div class="header-nav">
+          <a href="../../index.html">All Monographs</a>
+          <a href="../../rss.xml">RSS</a>
+          <select aria-label="Color theme" class="theme-select" id="themeSelect">
+            <option value="">System Theme</option>
+            <option value="archival-paper">Archival Paper</option>
+            <option value="sepia-folio">Sepia Folio</option>
+            <option value="obsidian-ink">Obsidian Ink</option>
+            <option value="midnight-observatory">Midnight Observatory</option>
+          </select>
+        </div>
+      </div>
+    </header>
+    <div class="page-wrap">
+      <main>
+        <div class="meta">
+          <span class="cat">Quantum Physics</span><span>·</span>
+          <span>Published 2026-11-12</span><span>·</span>
+          <span>2 min read</span><span>·</span>
+          <span>23 equations</span>
+        </div>
+        <h1>Topological Protection and Threshold Scaling in Planar Surface Codes</h1>
+        <div class="author-row">
+          <img class="author-avatar" src="../../assets/images/author_portrait_lead_1795515080729.jpg" alt="Dr. Elena Rostova" />
+          <div>
+            <div class="author-name">Dr. Elena Rostova</div>
+            <div class="author-aff">Institute for Quantum Optics, Zurich</div>
+          </div>
+        </div>
+        <section class="abstract" aria-label="Abstract">
+          <div class="abstract-label">Abstract</div>
+          <p>We derive the sub-threshold logical error suppression law for planar stabilizer lattices under asymmetric Pauli-Z biased noise and validate decoder runtime scaling up to code distance d = 21.</p>
+        </section>
+        <figure class="cover-plate">
+        <div class="cover-frame"><img src="../../assets/images/hero_quantum_lattice_1795515080583.jpg" alt="Topological Protection and Threshold Scaling in Planar Surface Codes" /></div>
+        <figcaption>Plate 1. Optical interferometer bench calibrated for dual-rail phase stabilization at 780 nm.</figcaption>
+      </figure>
+        <article class="prose"><h2 id="1-stabilizer-formalism-on-a-planar-lattice">1. Stabilizer Formalism on a Planar Lattice</h2>
+<p>A planar surface code of distance <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi></mrow><annotation encoding="application/x-tex">d</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">d</span></span></span></span> embeds <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi><mo>=</mo><msup><mi>d</mi><mn>2</mn></msup><mo>+</mo><mo>(</mo><mi>d</mi><mo>−</mo><mn>1</mn><msup><mo>)</mo><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">n = d^2 + (d-1)^2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">n</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8974em;vertical-align:-0.0833em;"></span><span class="mord"><span class="mord mathnormal">d</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal">d</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1.0641em;vertical-align:-0.25em;"></span><span class="mord">1</span><span class="mclose"><span class="mclose">)</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span></span></span></span> physical data qubits onto the edges of a square lattice with rough and smooth boundary conditions. The code space <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>C</mi></mrow><annotation encoding="application/x-tex">\mathcal{C}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathcal" style="margin-right:0.0583em;">C</span></span></span></span> is defined as the simultaneous <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>+</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">+1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7278em;vertical-align:-0.0833em;"></span><span class="mord">+</span><span class="mord">1</span></span></span></span> eigenspace of mutually commuting vertex (<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>A</mi><mi>v</mi></msub></mrow><annotation encoding="application/x-tex">A_v</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">A</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0359em;">v</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>) and plaquette (<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>B</mi><mi>p</mi></msub></mrow><annotation encoding="application/x-tex">B_p</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.9694em;vertical-align:-0.2861em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0502em;">B</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0502em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">p</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span></span></span></span>) operators:</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>A</mi><mi>v</mi></msub><mo>=</mo><munder><mo>∏</mo><mrow><mi>e</mi><mo>∈</mo><mi>δ</mi><mo>(</mo><mi>v</mi><mo>)</mo></mrow></munder><msub><mi>X</mi><mi>e</mi></msub><mo>,</mo><mspace width="2em"></mspace><msub><mi>B</mi><mi>p</mi></msub><mo>=</mo><munder><mo>∏</mo><mrow><mi>e</mi><mo>∈</mo><mi>∂</mi><mi>p</mi></mrow></munder><msub><mi>Z</mi><mi>e</mi></msub></mrow><annotation encoding="application/x-tex">A_v = \prod_{e \in \delta(v)} X_e, \qquad B_p = \prod_{e \in \partial p} Z_e</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">A</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0359em;">v</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.566em;vertical-align:-1.516em;"></span><span class="mop op-limits"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.05em;"><span style="top:-1.809em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">e</span><span class="mrel mtight">∈</span><span class="mord mathnormal mtight" style="margin-right:0.0379em;">δ</span><span class="mopen mtight">(</span><span class="mord mathnormal mtight" style="margin-right:0.0359em;">v</span><span class="mclose mtight">)</span></span></span></span><span style="top:-3.05em;"><span class="pstrut" style="height:3.05em;"></span><span><span class="mop op-symbol large-op">∏</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.516em;"><span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0785em;">X</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0785em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">e</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:2em;"></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0502em;">B</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0502em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">p</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.4882em;vertical-align:-1.4382em;"></span><span class="mop op-limits"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.05em;"><span style="top:-1.8479em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">e</span><span class="mrel mtight">∈</span><span class="mord mtight" style="margin-right:0.0556em;">∂</span><span class="mord mathnormal mtight">p</span></span></span></span><span style="top:-3.05em;"><span class="pstrut" style="height:3.05em;"></span><span><span class="mop op-symbol large-op">∏</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.4382em;"><span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0715em;">Z</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">e</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></span>
+<p>Because every vertex shares either zero or two edges with any plaquette, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>[</mo><msub><mi>A</mi><mi>v</mi></msub><mo>,</mo><msub><mi>B</mi><mi>p</mi></msub><mo>]</mo><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">[A_v, B_p] = 0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0361em;vertical-align:-0.2861em;"></span><span class="mopen">[</span><span class="mord"><span class="mord mathnormal">A</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0359em;">v</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0502em;">B</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:-0.0502em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">p</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mclose">]</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0</span></span></span></span> holds identically across the lattice. Logical operators <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>X</mi><mo>ˉ</mo></mover></mrow><annotation encoding="application/x-tex">\bar{X}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8201em;"></span><span class="mord accent"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8201em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathnormal" style="margin-right:0.0785em;">X</span></span><span style="top:-3.2523em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.1667em;"><span class="mord">ˉ</span></span></span></span></span></span></span></span></span></span> and <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mi>Z</mi><mo>ˉ</mo></mover></mrow><annotation encoding="application/x-tex">\bar{Z}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8201em;"></span><span class="mord accent"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8201em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathnormal" style="margin-right:0.0715em;">Z</span></span><span style="top:-3.2523em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.1667em;"><span class="mord">ˉ</span></span></span></span></span></span></span></span></span></span> correspond to non-trivial relative homology chains connecting opposite boundaries, yielding a single encoded logical qubit with commutation relation <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>{</mo><mover><mi>X</mi><mo>ˉ</mo></mover><mo>,</mo><mover><mi>Z</mi><mo>ˉ</mo></mover><mo>}</mo><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\{\bar{X}, \bar{Z}\} = 0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0701em;vertical-align:-0.25em;"></span><span class="mopen">{</span><span class="mord accent"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8201em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathnormal" style="margin-right:0.0785em;">X</span></span><span style="top:-3.2523em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.1667em;"><span class="mord">ˉ</span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord accent"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8201em;"><span style="top:-3em;"><span class="pstrut" style="height:3em;"></span><span class="mord mathnormal" style="margin-right:0.0715em;">Z</span></span><span style="top:-3.2523em;"><span class="pstrut" style="height:3em;"></span><span class="accent-body" style="left:-0.1667em;"><span class="mord">ˉ</span></span></span></span></span></span></span><span class="mclose">}</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0</span></span></span></span>.</p>
+<h2 id="2-sub-threshold-logical-error-suppression">2. Sub-Threshold Logical Error Suppression</h2>
+<p>Under independent depolarizing noise of physical error rate <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>p</mi><mo>&#x3C;</mo><msub><mi>p</mi><mtext>th</mtext></msub></mrow><annotation encoding="application/x-tex">p &#x3C; p_{\text{th}}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7335em;vertical-align:-0.1944em;"></span><span class="mord mathnormal">p</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">&#x3C;</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord mathnormal">p</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">th</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>, the probability of a minimum-weight matching failure decreases exponentially with code distance <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi></mrow><annotation encoding="application/x-tex">d</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">d</span></span></span></span>. Summing over connected error chains of length <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>w</mi><mo>≥</mo><mo>(</mo><mi>d</mi><mo>+</mo><mn>1</mn><mo>)</mo><mi>/</mi><mn>2</mn></mrow><annotation encoding="application/x-tex">w \ge (d+1)/2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7719em;vertical-align:-0.136em;"></span><span class="mord mathnormal" style="margin-right:0.0269em;">w</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≥</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathnormal">d</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">1</span><span class="mclose">)</span><span class="mord">/2</span></span></span></span> yields the leading-order scaling law:</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><msub><mi>P</mi><mi>L</mi></msub><mo>(</mo><mi>p</mi><mo>,</mo><mi>d</mi><mo>)</mo><mo>≈</mo><mi>C</mi><msup><mrow><mo>(</mo><mfrac><mi>p</mi><msub><mi>p</mi><mtext>th</mtext></msub></mfrac><mo>)</mo></mrow><mfrac><mrow><mi>d</mi><mo>+</mo><mn>1</mn></mrow><mn>2</mn></mfrac></msup></mrow><annotation encoding="application/x-tex">P_L(p, d) \approx C \left(\frac{p}{p_{\text{th}}}\right)^{\frac{d+1}{2}}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1389em;">P</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">L</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal">p</span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal">d</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.769em;vertical-align:-0.95em;"></span><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="minner"><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size3">(</span></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.1076em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal">p</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">th</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal">p</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.8804em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mclose delimcenter" style="top:0em;"><span class="delimsizing size3">)</span></span></span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:1.8189em;"><span style="top:-4.2029em;margin-right:0.05em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mopen nulldelimiter sizing reset-size3 size6"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.88em;"><span style="top:-2.656em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord mtight">2</span></span></span></span><span style="top:-3.2255em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line mtight" style="border-bottom-width:0.049em;"></span></span><span style="top:-3.384em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">d</span><span class="mbin mtight">+</span><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.344em;"><span></span></span></span></span></span><span class="mclose nulldelimiter sizing reset-size3 size6"></span></span></span></span></span></span></span></span></span></span></span></span></span></span>
+<p>For biased noise channels with bias <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>η</mi><mo>=</mo><msub><mi>p</mi><mi>z</mi></msub><mi>/</mi><mo>(</mo><msub><mi>p</mi><mi>x</mi></msub><mo>+</mo><msub><mi>p</mi><mi>y</mi></msub><mo>)</mo><mo>≫</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">\eta = p_z / (p_x + p_y) \gg 1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.0359em;">η</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathnormal">p</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.044em;">z</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord">/</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal">p</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">x</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1.0361em;vertical-align:-0.2861em;"></span><span class="mord"><span class="mord mathnormal">p</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0359em;">y</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≫</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">1</span></span></span></span>, replacing standard <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>X</mi><mi>/</mi><mi>Z</mi></mrow><annotation encoding="application/x-tex">X/Z</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0785em;">X</span><span class="mord">/</span><span class="mord mathnormal" style="margin-right:0.0715em;">Z</span></span></span></span> plaquettes with XZZX stabilizers decouples high-rate phase errors into decoupled one-dimensional Ising chains, lifting the threshold from <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mtext>th</mtext></msub><mo>≈</mo><mn>0.0089</mn></mrow><annotation encoding="application/x-tex">p_{\text{th}} \approx 0.0089</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6776em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord mathnormal">p</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">th</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0.0089</span></span></span></span> to <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msubsup><mi>p</mi><mtext>th</mtext><mtext>XZZX</mtext></msubsup><mo>≈</mo><mn>0.0245</mn></mrow><annotation encoding="application/x-tex">p_{\text{th}}^{\text{XZZX}} \approx 0.0245</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.1244em;vertical-align:-0.2831em;"></span><span class="mord"><span class="mord mathnormal">p</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8413em;"><span style="top:-2.4169em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">th</span></span></span></span></span><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">XZZX</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2831em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≈</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0.0245</span></span></span></span>.</p>
+<blockquote>
+<p>Physical fidelity alone does not yield fault tolerance; geometric locality of parity measurements determines whether entropy can be evacuated faster than it accumulates.</p>
+</blockquote>
+<h2 id="3-minimum-weight-perfect-matching-benchmark">3. Minimum-Weight Perfect Matching Benchmark</h2>
+<table>
+<thead>
+<tr>
+<th>Code Distance <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi></mrow><annotation encoding="application/x-tex">d</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal">d</span></span></span></span></th>
+<th>Physical Qubits <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>n</mi></mrow><annotation encoding="application/x-tex">n</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">n</span></span></span></span></th>
+<th>Threshold <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mtext>th</mtext></msub></mrow><annotation encoding="application/x-tex">p_{\text{th}}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord mathnormal">p</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">th</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></th>
+<th>Logical Suppression <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Λ</mi></mrow><annotation encoding="application/x-tex">\Lambda</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord">Λ</span></span></span></span></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>5</td>
+<td>41</td>
+<td>0.0089</td>
+<td>2.84</td>
+</tr>
+<tr>
+<td>11</td>
+<td>221</td>
+<td>0.0091</td>
+<td>3.12</td>
+</tr>
+<tr>
+<td>17</td>
+<td>545</td>
+<td>0.0092</td>
+<td>3.29</td>
+</tr>
+<tr>
+<td>21</td>
+<td>841</td>
+<td>0.0092</td>
+<td>3.36</td>
+</tr>
+</tbody>
+</table>
+<pre><code class="language-python"><span class="hljs-keyword">import</span> numpy <span class="hljs-keyword">as</span> np
+
+<span class="hljs-keyword">def</span> <span class="hljs-title function_">logical_error_rate</span>(<span class="hljs-params">p: <span class="hljs-built_in">float</span>, p_th: <span class="hljs-built_in">float</span>, d: <span class="hljs-built_in">int</span>, c: <span class="hljs-built_in">float</span> = <span class="hljs-number">0.08</span></span>) -> <span class="hljs-built_in">float</span>:
+    <span class="hljs-string">"""Compute leading-order sub-threshold logical error probability."""</span>
+    exponent = (d + <span class="hljs-number">1</span>) / <span class="hljs-number">2.0</span>
+    <span class="hljs-keyword">return</span> c * np.power(p / p_th, exponent)
+</code></pre>
+<h2 id="4-citation">4. Citation</h2>
+<pre><code class="language-bibtex">@article{rostova2026topological,
+  title={Topological Protection and Threshold Scaling in Planar Surface Codes},
+  author={Rostova, Elena},
+  journal={AmplitudeLand Monograph Series},
+  year={2026},
+  doi={10.48550/ax.2026.0114}
+}
+</code></pre></article>
+        <section class="bibtex-box" aria-label="BibTeX Citation">
+          <div class="bibtex-head">
+            <h2>Cite This Monograph</h2>
+            <button type="button" class="copy-btn" id="copyBibtex">Copy BibTeX</button>
+          </div>
+          <pre class="bibtex-pre" id="bibtexPre">@article{rostova2026topological,
+  title={Topological Protection and Threshold Scaling in Planar Surface Codes},
+  author={Dr. Elena Rostova},
+  journal={AmplitudeLand Scientific Journal},
+  year={2026},
+  url={https://Mostafa-gh-phys.github.io/amplitudeland-/posts/topological-protection-surface-codes/},
+  doi={10.48550/ax.2026.0114}
+}</pre>
+        </section>
+      </main>
+      <aside>
+        <nav class="side-card" aria-label="Table of Contents">
+          <div class="side-title">Contents</div>
+          <ul class="toc-list">
+            <li class=""><a href="#1-stabilizer-formalism-on-a-planar-lattice">1. Stabilizer Formalism on a Planar Lattice</a></li>
+            <li class=""><a href="#2-sub-threshold-logical-error-suppression">2. Sub-Threshold Logical Error Suppression</a></li>
+            <li class=""><a href="#3-minimum-weight-perfect-matching-benchmark">3. Minimum-Weight Perfect Matching Benchmark</a></li>
+            <li class=""><a href="#4-citation">4. Citation</a></li>
+          </ul>
+        </nav>
+        <div class="side-card">
+          <div class="side-title">Monograph Dossier</div>
+          <dl class="dossier">
+            <div class="dossier-row"><dt>Category</dt><dd>Quantum Physics</dd></div>
+            <div class="dossier-row"><dt>Tags</dt><dd>Surface Codes, Error Correction, Stabilizers, Fault Tolerance</dd></div>
+            <div class="dossier-row"><dt>Git File</dt><dd class="mono">content/posts/topological-protection-surface-codes.md</dd></div>
+            <div class="dossier-row"><dt>Commit SHA</dt><dd class="mono">9c4e1b8</dd></div>
+            <div class="dossier-row"><dt>DOI</dt><dd class="mono">10.48550/ax.2026.0114</dd></div>
+            <div class="dossier-row"><dt>Updated</dt><dd class="mono">2026-11-18</dd></div>
+          </dl>
+        </div>
+      </aside>
+    </div>
+    <footer>
+      <span>AmplitudeLand Scientific Journal · Static Monograph</span>
+      <span><a href="../../index.html">← Back to Monograph Index</a></span>
+    </footer>
+    <script>
+      (function () {
+        var select = document.getElementById('themeSelect');
+        if (select) {
+          var saved = localStorage.getItem('amplitudeland_pages_theme') || '';
+          select.value = saved;
+          select.addEventListener('change', function () {
+            var val = select.value;
+            if (val) {
+              document.documentElement.setAttribute('data-theme', val);
+              localStorage.setItem('amplitudeland_pages_theme', val);
+            } else {
+              document.documentElement.removeAttribute('data-theme');
+              localStorage.removeItem('amplitudeland_pages_theme');
+            }
+          });
+        }
+        var copyBtn = document.getElementById('copyBibtex');
+        var pre = document.getElementById('bibtexPre');
+        if (copyBtn && pre && navigator.clipboard) {
+          copyBtn.addEventListener('click', function () {
+            navigator.clipboard.writeText(pre.textContent || '').then(function () {
+              copyBtn.textContent = 'Copied BibTeX';
+              setTimeout(function () { copyBtn.textContent = 'Copy BibTeX'; }, 2000);
+            });
+          });
+        }
+      })();
+    </script>
+  </body>
+</html>

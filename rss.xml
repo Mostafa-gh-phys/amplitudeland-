@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>AmplitudeLand Scientific Weblog</title>
+    <link>https://Mostafa-gh-phys.github.io/amplitudeland-</link>
+    <description>Peer-grade scientific monographs with native LaTeX equations and GitHub CMS versioning.</description>
+    <item>
+      <title>Topological Protection and Threshold Scaling in Planar Surface Codes</title>
+      <link>https://Mostafa-gh-phys.github.io/amplitudeland-/posts/topological-protection-surface-codes/</link>
+      <guid isPermaLink="true">https://Mostafa-gh-phys.github.io/amplitudeland-/posts/topological-protection-surface-codes/</guid>
+      <pubDate>Thu, 12 Nov 2026 00:00:00 GMT</pubDate>
+      <category>Quantum Physics</category>
+      <description>We derive the sub-threshold logical error suppression law for planar stabilizer lattices under asymmetric Pauli-Z biased noise and validate decoder runtime scaling up to code distance d = 21.</description>
+    </item>
+    <item>
+      <title>Vorticity Stretching and Energy Cascades in Incompressible Turbulence</title>
+      <link>https://Mostafa-gh-phys.github.io/amplitudeland-/posts/vorticity-stretching-navier-stokes/</link>
+      <guid isPermaLink="true">https://Mostafa-gh-phys.github.io/amplitudeland-/posts/vorticity-stretching-navier-stokes/</guid>
+      <pubDate>Wed, 04 Nov 2026 00:00:00 GMT</pubDate>
+      <category>Fluid Dynamics</category>
+      <description>An analytical decomposition of the three-dimensional enstrophy budget examining alignment between the vorticity vector and the intermediate strain-rate eigenvector.</description>
+    </item>
+    <item>
+      <title>Kan Extensions as Universal Approximations in Monoidal Categories</title>
+      <link>https://Mostafa-gh-phys.github.io/amplitudeland-/posts/kan-extensions-monoidal-categories/</link>
+      <guid isPermaLink="true">https://Mostafa-gh-phys.github.io/amplitudeland-/posts/kan-extensions-monoidal-categories/</guid>
+      <pubDate>Tue, 27 Oct 2026 00:00:00 GMT</pubDate>
+      <category>Mathematics</category>
+      <description>A structural exposition showing how left and right Kan extensions unify sheafification, Fourier-like integral transforms, and enriched profunctor composition.</description>
+    </item>
+    <item>
+      <title>Finite-Time Corrections to Landauer Erasure in Overdamped Potentials</title>
+      <link>https://Mostafa-gh-phys.github.io/amplitudeland-/posts/stochastic-thermodynamics-landauer-bound/</link>
+      <guid isPermaLink="true">https://Mostafa-gh-phys.github.io/amplitudeland-/posts/stochastic-thermodynamics-landauer-bound/</guid>
+      <pubDate>Mon, 19 Oct 2026 00:00:00 GMT</pubDate>
+      <category>Thermodynamics</category>
+      <description>Using optimal transport on Wasserstein-2 manifolds, we compute the exact minimum dissipated heat required to reset a symmetric double-well bit in finite duration tau.</description>
+    </item>
+    <item>
+      <title>Linear Stability Criteria for Two-Component Turing Morphogenesis</title>
+      <link>https://Mostafa-gh-phys.github.io/amplitudeland-/posts/reaction-diffusion-turing-morphogenesis/</link>
+      <guid isPermaLink="true">https://Mostafa-gh-phys.github.io/amplitudeland-/posts/reaction-diffusion-turing-morphogenesis/</guid>
+      <pubDate>Thu, 08 Oct 2026 00:00:00 GMT</pubDate>
+      <category>Computational Biology</category>
+      <description>Necessary and sufficient Jacobian conditions for diffusion-driven spatial symmetry breaking in coupled activator-inhibitor biochemical networks.</description>
+    </item>
+  </channel>
+</rss>

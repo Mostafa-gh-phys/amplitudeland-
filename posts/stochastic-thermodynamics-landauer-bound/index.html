@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Finite-Time Corrections to Landauer Erasure in Overdamped Potentials — AmplitudeLand</title>
+    <meta name="description" content="Using optimal transport on Wasserstein-2 manifolds, we compute the exact minimum dissipated heat required to reset a symmetric double-well bit in finite duration tau." />
+    <meta name="keywords" content="Landauer Limit, Optimal Transport, Stochastic Physics" />
+    <meta name="author" content="Dr. Clara Moreau" />
+    <link rel="canonical" href="https://Mostafa-gh-phys.github.io/amplitudeland-/posts/stochastic-thermodynamics-landauer-bound/" />
+    <meta property="og:type" content="article" />
+    <meta property="og:site_name" content="AmplitudeLand" />
+    <meta property="og:title" content="Finite-Time Corrections to Landauer Erasure in Overdamped Potentials" />
+    <meta property="og:description" content="Using optimal transport on Wasserstein-2 manifolds, we compute the exact minimum dissipated heat required to reset a symmetric double-well bit in finite duration tau." />
+    <meta property="og:url" content="https://Mostafa-gh-phys.github.io/amplitudeland-/posts/stochastic-thermodynamics-landauer-bound/" />
+    <meta property="article:published_time" content="2026-10-19" />
+    <meta property="article:modified_time" content="2026-10-22" />
+    <meta property="article:section" content="Thermodynamics" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Finite-Time Corrections to Landauer Erasure in Overdamped Potentials" />
+    <meta name="twitter:description" content="Using optimal transport on Wasserstein-2 manifolds, we compute the exact minimum dissipated heat required to reset a symmetric double-well bit in finite duration tau." />
+    <script>(function(){try{var t=localStorage.getItem('amplitudeland_pages_theme');if(t){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+    <link rel="stylesheet" href="../../assets/katex/katex.min.css" crossorigin="anonymous" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=JetBrains+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+    <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "ScholarlyArticle",
+  "headline": "Finite-Time Corrections to Landauer Erasure in Overdamped Potentials",
+  "abstract": "Using optimal transport on Wasserstein-2 manifolds, we compute the exact minimum dissipated heat required to reset a symmetric double-well bit in finite duration tau.",
+  "author": {
+    "@type": "Person",
+    "name": "Dr. Clara Moreau",
+    "affiliation": {
+      "@type": "Organization",
+      "name": "Ecole Normale Superieure, Paris"
+    }
+  },
+  "datePublished": "2026-10-19",
+  "dateModified": "2026-10-22",
+  "articleSection": "Thermodynamics",
+  "keywords": "Landauer Limit, Optimal Transport, Stochastic Physics",
+  "identifier": "10.48550/ax.2026.0067",
+  "url": "https://Mostafa-gh-phys.github.io/amplitudeland-/posts/stochastic-thermodynamics-landauer-bound/",
+  "publisher": {
+    "@type": "Organization",
+    "name": "AmplitudeLand"
+  }
+}</script>
+    <style>
+      :root {
+        --bg: #FAF9F6;
+        --surface: #FFFFFF;
+        --surface-muted: #F3F1EC;
+        --border: #E4E0D8;
+        --text: #1C1917;
+        --text-muted: #57534E;
+        --accent: #1D4ED8;
+        --accent-hover: #1E40AF;
+        --font-serif: "Fraunces", Georgia, Cambria, serif;
+        --font-sans: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+        --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme="archival-paper"]):not([data-theme="sepia-folio"]) {
+          --bg: #0F1115;
+          --surface: #161A22;
+          --surface-muted: #1E232E;
+          --border: #272D3A;
+          --text: #F1F5F9;
+          --text-muted: #94A3B8;
+          --accent: #60A5FA;
+          --accent-hover: #93C5FD;
+        }
+      }
+      :root[data-theme="archival-paper"] {
+        --bg: #FAF9F6; --surface: #FFFFFF; --surface-muted: #F3F1EC; --border: #E4E0D8;
+        --text: #1C1917; --text-muted: #57534E; --accent: #1D4ED8; --accent-hover: #1E40AF;
+      }
+      :root[data-theme="sepia-folio"] {
+        --bg: #F4EFE6; --surface: #FBF8F1; --surface-muted: #EAE2D3; --border: #DDD3C2;
+        --text: #292018; --text-muted: #665748; --accent: #9A3412; --accent-hover: #7C2D12;
+      }
+      :root[data-theme="obsidian-ink"] {
+        --bg: #0F1115; --surface: #161A22; --surface-muted: #1E232E; --border: #272D3A;
+        --text: #F1F5F9; --text-muted: #94A3B8; --accent: #60A5FA; --accent-hover: #93C5FD;
+      }
+      :root[data-theme="midnight-observatory"] {
+        --bg: #080D1A; --surface: #0F172A; --surface-muted: #172036; --border: #1E293B;
+        --text: #E2E8F0; --text-muted: #94A3B8; --accent: #38BDF8; --accent-hover: #7DD3FC;
+      }
+      * { box-sizing: border-box; }
+      body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font-sans); line-height: 1.75; transition: background 0.15s, color 0.15s; }
+
+      header { position: sticky; top: 0; z-index: 40; border-bottom: 1px solid var(--border); background: var(--surface); }
+      .header-inner { max-width: 72rem; margin: 0 auto; padding: 0.9rem 1.5rem; display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+      .brand { font-family: var(--font-serif); font-size: 1.35rem; font-weight: 600; color: var(--text); text-decoration: none; }
+      .header-nav { display: flex; align-items: center; gap: 1rem; font-size: 0.84rem; font-weight: 600; }
+      .header-nav a { color: var(--accent); text-decoration: none; }
+      .header-nav a:hover { text-decoration: underline; }
+      .theme-select { background: var(--surface-muted); color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 0.3rem 0.55rem; font-size: 0.78rem; font-family: var(--font-sans); cursor: pointer; }
+      .page-wrap { max-width: 72rem; margin: 2.5rem auto 5rem; padding: 0 1.5rem; display: grid; gap: 3rem; grid-template-columns: minmax(0, 1fr); }
+      @media (min-width: 1024px) { .page-wrap { grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr); align-items: start; } }
+      .meta { display: flex; flex-wrap: wrap; gap: 0.45rem; font-size: 0.8125rem; color: var(--text-muted); margin-bottom: 0.85rem; }
+      .meta .cat { color: var(--accent); font-weight: 600; }
+      h1 { font-family: var(--font-serif); font-size: clamp(2rem, 3.8vw, 2.75rem); line-height: 1.15; margin: 0 0 1.1rem; font-weight: 600; letter-spacing: -0.015em; }
+      .author-row { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.75rem; }
+      .author-avatar { width: 40px; height: 40px; border-radius: 9999px; object-fit: cover; border: 1px solid var(--border); }
+      .author-name { font-size: 0.9rem; font-weight: 600; color: var(--text); }
+      .author-aff { font-size: 0.78rem; color: var(--text-muted); }
+      .abstract { border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 1.25rem 0; margin: 1.5rem 0 2rem; }
+      .abstract-label { font-size: 0.75rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0.35rem; }
+      .abstract p { margin: 0; font-size: 1.03rem; color: var(--text); }
+      .cover-plate { margin: 0 0 2.25rem; }
+      .cover-frame { overflow: hidden; border-radius: 6px; border: 1px solid var(--border); aspect-ratio: 16 / 9; background: var(--surface-muted); }
+      .cover-frame img { width: 100%; height: 100%; object-fit: cover; display: block; }
+      .cover-plate figcaption { margin-top: 0.5rem; font-family: var(--font-serif); font-style: italic; font-size: 0.8rem; color: var(--text-muted); }
+      article.prose { max-width: 44rem; font-size: 1.03rem; }
+      article.prose h2 { font-family: var(--font-serif); font-size: 1.55rem; margin: 2.25rem 0 0.85rem; border-bottom: 1px solid var(--border); padding-bottom: 0.4rem; scroll-margin-top: 5rem; }
+      article.prose h3 { font-family: var(--font-serif); font-size: 1.2rem; margin: 1.75rem 0 0.65rem; scroll-margin-top: 5rem; }
+      article.prose p { margin: 0 0 1.2rem; }
+      article.prose blockquote { margin: 1.5rem 0; padding: 0.9rem 1.15rem; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); font-family: var(--font-serif); font-style: italic; font-size: 1.08rem; }
+      article.prose pre { background: var(--surface-muted); border: 1px solid var(--border); padding: 1rem; border-radius: 6px; overflow-x: auto; font-family: var(--font-mono); font-size: 0.84rem; line-height: 1.6; }
+      article.prose code { font-family: var(--font-mono); background: var(--surface-muted); padding: 0.15rem 0.35rem; border-radius: 4px; font-size: 0.87em; }
+      article.prose pre code { background: transparent; padding: 0; }
+      article.prose table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; font-size: 0.9rem; font-variant-numeric: tabular-nums; }
+      article.prose th, article.prose td { padding: 0.6rem 0.8rem; border-bottom: 1px solid var(--border); text-align: left; }
+      article.prose th { font-weight: 600; border-bottom-width: 2px; }
+      .katex-display { overflow-x: auto; overflow-y: hidden; padding: 0.65rem 0.25rem; }
+      .bibtex-box { margin-top: 3rem; padding-top: 1.75rem; border-top: 1px solid var(--border); max-width: 44rem; }
+      .bibtex-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; }
+      .bibtex-head h2 { font-family: var(--font-serif); font-size: 1.15rem; margin: 0; }
+      .copy-btn { background: var(--surface); border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 0.35rem 0.75rem; font-size: 0.78rem; font-weight: 600; cursor: pointer; }
+      .copy-btn:hover { background: var(--surface-muted); }
+      .bibtex-pre { background: var(--surface-muted); border: 1px solid var(--border); border-radius: 6px; padding: 1rem; font-family: var(--font-mono); font-size: 0.78rem; overflow-x: auto; margin: 0; }
+      aside { position: sticky; top: 5rem; display: flex; flex-direction: column; gap: 1.5rem; }
+      .side-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem; }
+      .side-title { font-size: 0.75rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; }
+      .toc-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.85rem; }
+      .toc-list li.toc-h3 { padding-left: 0.9rem; font-size: 0.82rem; }
+      .toc-list a { color: var(--text); text-decoration: none; }
+      .toc-list a:hover { color: var(--accent); text-decoration: underline; }
+      .dossier { margin: 0; font-size: 0.78rem; }
+      .dossier-row { display: flex; justify-content: space-between; gap: 1rem; padding: 0.55rem 0; border-bottom: 1px solid var(--border); }
+      .dossier-row:last-child { border-bottom: 0; }
+      .dossier dt { color: var(--text-muted); }
+      .dossier dd { margin: 0; font-weight: 500; text-align: right; word-break: break-word; }
+      .mono { font-family: var(--font-mono); }
+      footer { max-width: 72rem; margin: 0 auto; padding: 1.75rem 1.5rem 3rem; border-top: 1px solid var(--border); font-size: 0.8125rem; color: var(--text-muted); display: flex; flex-wrap: wrap; justify-content: space-between; gap: 1rem; }
+      footer a { color: var(--accent); text-decoration: none; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="header-inner">
+        <a href="../../index.html" class="brand">AmplitudeLand</a>
+        <div class="header-nav">
+          <a href="../../index.html">All Monographs</a>
+          <a href="../../rss.xml">RSS</a>
+          <select aria-label="Color theme" class="theme-select" id="themeSelect">
+            <option value="">System Theme</option>
+            <option value="archival-paper">Archival Paper</option>
+            <option value="sepia-folio">Sepia Folio</option>
+            <option value="obsidian-ink">Obsidian Ink</option>
+            <option value="midnight-observatory">Midnight Observatory</option>
+          </select>
+        </div>
+      </div>
+    </header>
+    <div class="page-wrap">
+      <main>
+        <div class="meta">
+          <span class="cat">Thermodynamics</span><span>·</span>
+          <span>Published 2026-10-19</span><span>·</span>
+          <span>1 min read</span><span>·</span>
+          <span>11 equations</span>
+        </div>
+        <h1>Finite-Time Corrections to Landauer Erasure in Overdamped Potentials</h1>
+        <div class="author-row">
+          
+          <div>
+            <div class="author-name">Dr. Clara Moreau</div>
+            <div class="author-aff">Ecole Normale Superieure, Paris</div>
+          </div>
+        </div>
+        <section class="abstract" aria-label="Abstract">
+          <div class="abstract-label">Abstract</div>
+          <p>Using optimal transport on Wasserstein-2 manifolds, we compute the exact minimum dissipated heat required to reset a symmetric double-well bit in finite duration tau.</p>
+        </section>
+        
+        <article class="prose"><h2 id="1-the-thermodynamic-cost-of-bit-erasure">1. The Thermodynamic Cost of Bit Erasure</h2>
+<p>Erasure of a single symmetric memory bit reduces Shannon entropy by <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Δ</mi><mi>S</mi><mo>=</mo><mo>−</mo><msub><mi>k</mi><mi>B</mi></msub><mi>ln</mi><mo>⁡</mo><mn>2</mn></mrow><annotation encoding="application/x-tex">\Delta S = -k_B \ln 2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord">Δ</span><span class="mord mathnormal" style="margin-right:0.0576em;">S</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8444em;vertical-align:-0.15em;"></span><span class="mord">−</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0315em;">k</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0315em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0502em;">B</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mop">ln</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">2</span></span></span></span>. In the quasistatic limit <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>τ</mi><mo>→</mo><mi>∞</mi></mrow><annotation encoding="application/x-tex">\tau \to \infty</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal" style="margin-right:0.1132em;">τ</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">→</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord">∞</span></span></span></span>, the average work obeys Landauer's principle:</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mo>⟨</mo><mi>W</mi><mo>⟩</mo><mo>≥</mo><msub><mi>k</mi><mi>B</mi></msub><mi>T</mi><mi>ln</mi><mo>⁡</mo><mn>2</mn></mrow><annotation encoding="application/x-tex">\langle W \rangle \ge k_B T \ln 2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">⟨</span><span class="mord mathnormal" style="margin-right:0.1389em;">W</span><span class="mclose">⟩</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≥</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8444em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0315em;">k</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0315em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0502em;">B</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord mathnormal" style="margin-right:0.1389em;">T</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mop">ln</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">2</span></span></span></span></span>
+<h2 id="2-finite-time-optimal-transport-bound">2. Finite-Time Optimal Transport Bound</h2>
+<p>For an overdamped Brownian particle with mobility <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>μ</mi></mrow><annotation encoding="application/x-tex">\mu</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord mathnormal">μ</span></span></span></span> evolving from probability density <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ρ</mi><mn>0</mn></msub></mrow><annotation encoding="application/x-tex">\rho_0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord mathnormal">ρ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> to <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>ρ</mi><mi>τ</mi></msub></mrow><annotation encoding="application/x-tex">\rho_\tau</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.625em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord mathnormal">ρ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.1132em;">τ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> over finite duration <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>τ</mi></mrow><annotation encoding="application/x-tex">\tau</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal" style="margin-right:0.1132em;">τ</span></span></span></span>, the minimum excess dissipation is governed by the squared <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>L</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">L^2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord"><span class="mord mathnormal">L</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span></span></span></span>-Wasserstein distance <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>W</mi><mn>2</mn></msub><mo>(</mo><msub><mi>ρ</mi><mn>0</mn></msub><mo>,</mo><msub><mi>ρ</mi><mi>τ</mi></msub><msup><mo>)</mo><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">\mathcal{W}_2(\rho_0, \rho_\tau)^2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0641em;vertical-align:-0.25em;"></span><span class="mord"><span class="mord mathcal" style="margin-right:0.0822em;">W</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0822em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal">ρ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">ρ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.1132em;">τ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose"><span class="mclose">)</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span></span></span></span>:</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mo>⟨</mo><msub><mi>W</mi><mtext>diss</mtext></msub><msub><mo>⟩</mo><mi>min</mi><mo>⁡</mo></msub><mo>=</mo><mfrac><mrow><msub><mi>W</mi><mn>2</mn></msub><mo>(</mo><msub><mi>ρ</mi><mn>0</mn></msub><mo>,</mo><msub><mi>ρ</mi><mi>τ</mi></msub><msup><mo>)</mo><mn>2</mn></msup></mrow><mrow><mi>μ</mi><mi>τ</mi></mrow></mfrac></mrow><annotation encoding="application/x-tex">\langle W_{\text{diss}} \rangle_{\min} = \frac{\mathcal{W}_2(\rho_0, \rho_\tau)^2}{\mu \tau}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">⟨</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1389em;">W</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3361em;"><span style="top:-2.55em;margin-left:-0.1389em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord text mtight"><span class="mord mtight">diss</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose"><span class="mclose">⟩</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3175em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mop mtight"><span class="mtight">m</span><span class="mtight">i</span><span class="mtight">n</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.3715em;vertical-align:-0.8804em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.4911em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.1132em;">μτ</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathcal" style="margin-right:0.0822em;">W</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:-0.0822em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal">ρ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">0</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mord mathnormal">ρ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.1514em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.1132em;">τ</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose"><span class="mclose">)</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.8804em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></span>
+<p>Combining both regimes gives the tight finite-time bound <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>⟨</mo><mi>W</mi><mo>⟩</mo><mo>≥</mo><msub><mi>k</mi><mi>B</mi></msub><mi>T</mi><mi>ln</mi><mo>⁡</mo><mn>2</mn><mo>+</mo><mfrac><msubsup><mi>W</mi><mn>2</mn><mn>2</mn></msubsup><mrow><mi>μ</mi><mi>τ</mi></mrow></mfrac></mrow><annotation encoding="application/x-tex">\langle W \rangle \ge k_B T \ln 2 + \frac{\mathcal{W}_2^2}{\mu \tau}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">⟨</span><span class="mord mathnormal" style="margin-right:0.1389em;">W</span><span class="mclose">⟩</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≥</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8444em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0315em;">k</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0315em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0502em;">B</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord mathnormal" style="margin-right:0.1389em;">T</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mop">ln</span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord">2</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1.6152em;vertical-align:-0.4811em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.1341em;"><span style="top:-2.655em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.1132em;">μτ</span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.5102em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight"><span class="mord mathcal mtight" style="margin-right:0.0822em;">W</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8913em;"><span style="top:-2.214em;margin-left:-0.0822em;margin-right:0.0714em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight">2</span></span></span><span style="top:-2.931em;margin-right:0.0714em;"><span class="pstrut" style="height:2.5em;"></span><span class="sizing reset-size3 size1 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.286em;"><span></span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.4811em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span>, verified experimentally in feedback optical tweezers.</p></article>
+        <section class="bibtex-box" aria-label="BibTeX Citation">
+          <div class="bibtex-head">
+            <h2>Cite This Monograph</h2>
+            <button type="button" class="copy-btn" id="copyBibtex">Copy BibTeX</button>
+          </div>
+          <pre class="bibtex-pre" id="bibtexPre">@article{moreau2026stochastic,
+  title={Finite-Time Corrections to Landauer Erasure in Overdamped Potentials},
+  author={Dr. Clara Moreau},
+  journal={AmplitudeLand Scientific Journal},
+  year={2026},
+  url={https://Mostafa-gh-phys.github.io/amplitudeland-/posts/stochastic-thermodynamics-landauer-bound/},
+  doi={10.48550/ax.2026.0067}
+}</pre>
+        </section>
+      </main>
+      <aside>
+        <nav class="side-card" aria-label="Table of Contents">
+          <div class="side-title">Contents</div>
+          <ul class="toc-list">
+            <li class=""><a href="#1-the-thermodynamic-cost-of-bit-erasure">1. The Thermodynamic Cost of Bit Erasure</a></li>
+            <li class=""><a href="#2-finite-time-optimal-transport-bound">2. Finite-Time Optimal Transport Bound</a></li>
+          </ul>
+        </nav>
+        <div class="side-card">
+          <div class="side-title">Monograph Dossier</div>
+          <dl class="dossier">
+            <div class="dossier-row"><dt>Category</dt><dd>Thermodynamics</dd></div>
+            <div class="dossier-row"><dt>Tags</dt><dd>Landauer Limit, Optimal Transport, Stochastic Physics</dd></div>
+            <div class="dossier-row"><dt>Git File</dt><dd class="mono">content/posts/stochastic-thermodynamics-landauer-bound.md</dd></div>
+            <div class="dossier-row"><dt>Commit SHA</dt><dd class="mono">2a19d44</dd></div>
+            <div class="dossier-row"><dt>DOI</dt><dd class="mono">10.48550/ax.2026.0067</dd></div>
+            <div class="dossier-row"><dt>Updated</dt><dd class="mono">2026-10-22</dd></div>
+          </dl>
+        </div>
+      </aside>
+    </div>
+    <footer>
+      <span>AmplitudeLand Scientific Journal · Static Monograph</span>
+      <span><a href="../../index.html">← Back to Monograph Index</a></span>
+    </footer>
+    <script>
+      (function () {
+        var select = document.getElementById('themeSelect');
+        if (select) {
+          var saved = localStorage.getItem('amplitudeland_pages_theme') || '';
+          select.value = saved;
+          select.addEventListener('change', function () {
+            var val = select.value;
+            if (val) {
+              document.documentElement.setAttribute('data-theme', val);
+              localStorage.setItem('amplitudeland_pages_theme', val);
+            } else {
+              document.documentElement.removeAttribute('data-theme');
+              localStorage.removeItem('amplitudeland_pages_theme');
+            }
+          });
+        }
+        var copyBtn = document.getElementById('copyBibtex');
+        var pre = document.getElementById('bibtexPre');
+        if (copyBtn && pre && navigator.clipboard) {
+          copyBtn.addEventListener('click', function () {
+            navigator.clipboard.writeText(pre.textContent || '').then(function () {
+              copyBtn.textContent = 'Copied BibTeX';
+              setTimeout(function () { copyBtn.textContent = 'Copy BibTeX'; }, 2000);
+            });
+          });
+        }
+      })();
+    </script>
+  </body>
+</html>

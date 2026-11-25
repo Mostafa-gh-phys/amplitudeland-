@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://Mostafa-gh-phys.github.io/amplitudeland-/sitemap.xml

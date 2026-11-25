@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vorticity Stretching and Energy Cascades in Incompressible Turbulence — AmplitudeLand</title>
+    <meta name="description" content="An analytical decomposition of the three-dimensional enstrophy budget examining alignment between the vorticity vector and the intermediate strain-rate eigenvector." />
+    <meta name="keywords" content="Navier-Stokes, Turbulence, Vorticity, PDEs" />
+    <meta name="author" content="Prof. Henrik Lindqvist" />
+    <link rel="canonical" href="https://Mostafa-gh-phys.github.io/amplitudeland-/posts/vorticity-stretching-navier-stokes/" />
+    <meta property="og:type" content="article" />
+    <meta property="og:site_name" content="AmplitudeLand" />
+    <meta property="og:title" content="Vorticity Stretching and Energy Cascades in Incompressible Turbulence" />
+    <meta property="og:description" content="An analytical decomposition of the three-dimensional enstrophy budget examining alignment between the vorticity vector and the intermediate strain-rate eigenvector." />
+    <meta property="og:url" content="https://Mostafa-gh-phys.github.io/amplitudeland-/posts/vorticity-stretching-navier-stokes/" />
+    <meta property="article:published_time" content="2026-11-04" />
+    <meta property="article:modified_time" content="2026-11-09" />
+    <meta property="article:section" content="Fluid Dynamics" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Vorticity Stretching and Energy Cascades in Incompressible Turbulence" />
+    <meta name="twitter:description" content="An analytical decomposition of the three-dimensional enstrophy budget examining alignment between the vorticity vector and the intermediate strain-rate eigenvector." />
+    <script>(function(){try{var t=localStorage.getItem('amplitudeland_pages_theme');if(t){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+    <link rel="stylesheet" href="../../assets/katex/katex.min.css" crossorigin="anonymous" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=JetBrains+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+    <script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "ScholarlyArticle",
+  "headline": "Vorticity Stretching and Energy Cascades in Incompressible Turbulence",
+  "abstract": "An analytical decomposition of the three-dimensional enstrophy budget examining alignment between the vorticity vector and the intermediate strain-rate eigenvector.",
+  "author": {
+    "@type": "Person",
+    "name": "Prof. Henrik Lindqvist",
+    "affiliation": {
+      "@type": "Organization",
+      "name": "Nordic Center for Continuum Mechanics"
+    }
+  },
+  "datePublished": "2026-11-04",
+  "dateModified": "2026-11-09",
+  "articleSection": "Fluid Dynamics",
+  "keywords": "Navier-Stokes, Turbulence, Vorticity, PDEs",
+  "identifier": "10.48550/ax.2026.0098",
+  "url": "https://Mostafa-gh-phys.github.io/amplitudeland-/posts/vorticity-stretching-navier-stokes/",
+  "publisher": {
+    "@type": "Organization",
+    "name": "AmplitudeLand"
+  }
+}</script>
+    <style>
+      :root {
+        --bg: #FAF9F6;
+        --surface: #FFFFFF;
+        --surface-muted: #F3F1EC;
+        --border: #E4E0D8;
+        --text: #1C1917;
+        --text-muted: #57534E;
+        --accent: #1D4ED8;
+        --accent-hover: #1E40AF;
+        --font-serif: "Fraunces", Georgia, Cambria, serif;
+        --font-sans: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+        --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme="archival-paper"]):not([data-theme="sepia-folio"]) {
+          --bg: #0F1115;
+          --surface: #161A22;
+          --surface-muted: #1E232E;
+          --border: #272D3A;
+          --text: #F1F5F9;
+          --text-muted: #94A3B8;
+          --accent: #60A5FA;
+          --accent-hover: #93C5FD;
+        }
+      }
+      :root[data-theme="archival-paper"] {
+        --bg: #FAF9F6; --surface: #FFFFFF; --surface-muted: #F3F1EC; --border: #E4E0D8;
+        --text: #1C1917; --text-muted: #57534E; --accent: #1D4ED8; --accent-hover: #1E40AF;
+      }
+      :root[data-theme="sepia-folio"] {
+        --bg: #F4EFE6; --surface: #FBF8F1; --surface-muted: #EAE2D3; --border: #DDD3C2;
+        --text: #292018; --text-muted: #665748; --accent: #9A3412; --accent-hover: #7C2D12;
+      }
+      :root[data-theme="obsidian-ink"] {
+        --bg: #0F1115; --surface: #161A22; --surface-muted: #1E232E; --border: #272D3A;
+        --text: #F1F5F9; --text-muted: #94A3B8; --accent: #60A5FA; --accent-hover: #93C5FD;
+      }
+      :root[data-theme="midnight-observatory"] {
+        --bg: #080D1A; --surface: #0F172A; --surface-muted: #172036; --border: #1E293B;
+        --text: #E2E8F0; --text-muted: #94A3B8; --accent: #38BDF8; --accent-hover: #7DD3FC;
+      }
+      * { box-sizing: border-box; }
+      body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font-sans); line-height: 1.75; transition: background 0.15s, color 0.15s; }
+
+      header { position: sticky; top: 0; z-index: 40; border-bottom: 1px solid var(--border); background: var(--surface); }
+      .header-inner { max-width: 72rem; margin: 0 auto; padding: 0.9rem 1.5rem; display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+      .brand { font-family: var(--font-serif); font-size: 1.35rem; font-weight: 600; color: var(--text); text-decoration: none; }
+      .header-nav { display: flex; align-items: center; gap: 1rem; font-size: 0.84rem; font-weight: 600; }
+      .header-nav a { color: var(--accent); text-decoration: none; }
+      .header-nav a:hover { text-decoration: underline; }
+      .theme-select { background: var(--surface-muted); color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 0.3rem 0.55rem; font-size: 0.78rem; font-family: var(--font-sans); cursor: pointer; }
+      .page-wrap { max-width: 72rem; margin: 2.5rem auto 5rem; padding: 0 1.5rem; display: grid; gap: 3rem; grid-template-columns: minmax(0, 1fr); }
+      @media (min-width: 1024px) { .page-wrap { grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr); align-items: start; } }
+      .meta { display: flex; flex-wrap: wrap; gap: 0.45rem; font-size: 0.8125rem; color: var(--text-muted); margin-bottom: 0.85rem; }
+      .meta .cat { color: var(--accent); font-weight: 600; }
+      h1 { font-family: var(--font-serif); font-size: clamp(2rem, 3.8vw, 2.75rem); line-height: 1.15; margin: 0 0 1.1rem; font-weight: 600; letter-spacing: -0.015em; }
+      .author-row { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.75rem; }
+      .author-avatar { width: 40px; height: 40px; border-radius: 9999px; object-fit: cover; border: 1px solid var(--border); }
+      .author-name { font-size: 0.9rem; font-weight: 600; color: var(--text); }
+      .author-aff { font-size: 0.78rem; color: var(--text-muted); }
+      .abstract { border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 1.25rem 0; margin: 1.5rem 0 2rem; }
+      .abstract-label { font-size: 0.75rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0.35rem; }
+      .abstract p { margin: 0; font-size: 1.03rem; color: var(--text); }
+      .cover-plate { margin: 0 0 2.25rem; }
+      .cover-frame { overflow: hidden; border-radius: 6px; border: 1px solid var(--border); aspect-ratio: 16 / 9; background: var(--surface-muted); }
+      .cover-frame img { width: 100%; height: 100%; object-fit: cover; display: block; }
+      .cover-plate figcaption { margin-top: 0.5rem; font-family: var(--font-serif); font-style: italic; font-size: 0.8rem; color: var(--text-muted); }
+      article.prose { max-width: 44rem; font-size: 1.03rem; }
+      article.prose h2 { font-family: var(--font-serif); font-size: 1.55rem; margin: 2.25rem 0 0.85rem; border-bottom: 1px solid var(--border); padding-bottom: 0.4rem; scroll-margin-top: 5rem; }
+      article.prose h3 { font-family: var(--font-serif); font-size: 1.2rem; margin: 1.75rem 0 0.65rem; scroll-margin-top: 5rem; }
+      article.prose p { margin: 0 0 1.2rem; }
+      article.prose blockquote { margin: 1.5rem 0; padding: 0.9rem 1.15rem; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); font-family: var(--font-serif); font-style: italic; font-size: 1.08rem; }
+      article.prose pre { background: var(--surface-muted); border: 1px solid var(--border); padding: 1rem; border-radius: 6px; overflow-x: auto; font-family: var(--font-mono); font-size: 0.84rem; line-height: 1.6; }
+      article.prose code { font-family: var(--font-mono); background: var(--surface-muted); padding: 0.15rem 0.35rem; border-radius: 4px; font-size: 0.87em; }
+      article.prose pre code { background: transparent; padding: 0; }
+      article.prose table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; font-size: 0.9rem; font-variant-numeric: tabular-nums; }
+      article.prose th, article.prose td { padding: 0.6rem 0.8rem; border-bottom: 1px solid var(--border); text-align: left; }
+      article.prose th { font-weight: 600; border-bottom-width: 2px; }
+      .katex-display { overflow-x: auto; overflow-y: hidden; padding: 0.65rem 0.25rem; }
+      .bibtex-box { margin-top: 3rem; padding-top: 1.75rem; border-top: 1px solid var(--border); max-width: 44rem; }
+      .bibtex-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; }
+      .bibtex-head h2 { font-family: var(--font-serif); font-size: 1.15rem; margin: 0; }
+      .copy-btn { background: var(--surface); border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 0.35rem 0.75rem; font-size: 0.78rem; font-weight: 600; cursor: pointer; }
+      .copy-btn:hover { background: var(--surface-muted); }
+      .bibtex-pre { background: var(--surface-muted); border: 1px solid var(--border); border-radius: 6px; padding: 1rem; font-family: var(--font-mono); font-size: 0.78rem; overflow-x: auto; margin: 0; }
+      aside { position: sticky; top: 5rem; display: flex; flex-direction: column; gap: 1.5rem; }
+      .side-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem; }
+      .side-title { font-size: 0.75rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; }
+      .toc-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.85rem; }
+      .toc-list li.toc-h3 { padding-left: 0.9rem; font-size: 0.82rem; }
+      .toc-list a { color: var(--text); text-decoration: none; }
+      .toc-list a:hover { color: var(--accent); text-decoration: underline; }
+      .dossier { margin: 0; font-size: 0.78rem; }
+      .dossier-row { display: flex; justify-content: space-between; gap: 1rem; padding: 0.55rem 0; border-bottom: 1px solid var(--border); }
+      .dossier-row:last-child { border-bottom: 0; }
+      .dossier dt { color: var(--text-muted); }
+      .dossier dd { margin: 0; font-weight: 500; text-align: right; word-break: break-word; }
+      .mono { font-family: var(--font-mono); }
+      footer { max-width: 72rem; margin: 0 auto; padding: 1.75rem 1.5rem 3rem; border-top: 1px solid var(--border); font-size: 0.8125rem; color: var(--text-muted); display: flex; flex-wrap: wrap; justify-content: space-between; gap: 1rem; }
+      footer a { color: var(--accent); text-decoration: none; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="header-inner">
+        <a href="../../index.html" class="brand">AmplitudeLand</a>
+        <div class="header-nav">
+          <a href="../../index.html">All Monographs</a>
+          <a href="../../rss.xml">RSS</a>
+          <select aria-label="Color theme" class="theme-select" id="themeSelect">
+            <option value="">System Theme</option>
+            <option value="archival-paper">Archival Paper</option>
+            <option value="sepia-folio">Sepia Folio</option>
+            <option value="obsidian-ink">Obsidian Ink</option>
+            <option value="midnight-observatory">Midnight Observatory</option>
+          </select>
+        </div>
+      </div>
+    </header>
+    <div class="page-wrap">
+      <main>
+        <div class="meta">
+          <span class="cat">Fluid Dynamics</span><span>·</span>
+          <span>Published 2026-11-04</span><span>·</span>
+          <span>1 min read</span><span>·</span>
+          <span>16 equations</span>
+        </div>
+        <h1>Vorticity Stretching and Energy Cascades in Incompressible Turbulence</h1>
+        <div class="author-row">
+          
+          <div>
+            <div class="author-name">Prof. Henrik Lindqvist</div>
+            <div class="author-aff">Nordic Center for Continuum Mechanics</div>
+          </div>
+        </div>
+        <section class="abstract" aria-label="Abstract">
+          <div class="abstract-label">Abstract</div>
+          <p>An analytical decomposition of the three-dimensional enstrophy budget examining alignment between the vorticity vector and the intermediate strain-rate eigenvector.</p>
+        </section>
+        <figure class="cover-plate">
+        <div class="cover-frame"><img src="../../assets/images/article_navier_stokes_1795515079471.jpg" alt="Vorticity Stretching and Energy Cascades in Incompressible Turbulence" /></div>
+        <figcaption>Plate 2. Streamline transition from laminar shear into coherent vortical filaments.</figcaption>
+      </figure>
+        <article class="prose"><h2 id="1-the-vorticity-transport-equation">1. The Vorticity Transport Equation</h2>
+<p>Taking the curl of the incompressible Navier-Stokes momentum equation eliminates pressure and isolates the evolution of the vorticity vector <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ω</mi><mo>=</mo><mi>∇</mi><mo>×</mo><mi>u</mi></mrow><annotation encoding="application/x-tex">\boldsymbol{\omega} = \nabla \times \mathbf{u}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4444em;"></span><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.037em;">ω</span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.7667em;vertical-align:-0.0833em;"></span><span class="mord">∇</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.4444em;"></span><span class="mord mathbf">u</span></span></span></span>:</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mfrac><mrow><mi>∂</mi><mi>ω</mi></mrow><mrow><mi>∂</mi><mi>t</mi></mrow></mfrac><mo>+</mo><mo>(</mo><mi>u</mi><mo>⋅</mo><mi>∇</mi><mo>)</mo><mi>ω</mi><mo>=</mo><mo>(</mo><mi>ω</mi><mo>⋅</mo><mi>∇</mi><mo>)</mo><mi>u</mi><mo>+</mo><mi>ν</mi><msup><mi>∇</mi><mn>2</mn></msup><mi>ω</mi></mrow><annotation encoding="application/x-tex">\frac{\partial \boldsymbol{\omega}}{\partial t} + (\mathbf{u} \cdot \nabla)\boldsymbol{\omega} = (\boldsymbol{\omega} \cdot \nabla)\mathbf{u} + \nu \nabla^2 \boldsymbol{\omega}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:2.0574em;vertical-align:-0.686em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3714em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord" style="margin-right:0.0556em;">∂</span><span class="mord mathnormal">t</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord" style="margin-right:0.0556em;">∂</span><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.037em;">ω</span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord mathbf">u</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">∇</span><span class="mclose">)</span><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.037em;">ω</span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.037em;">ω</span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">∇</span><span class="mclose">)</span><span class="mord mathbf">u</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8641em;"></span><span class="mord mathnormal" style="margin-right:0.0637em;">ν</span><span class="mord"><span class="mord">∇</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8641em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.037em;">ω</span></span></span></span></span></span></span>
+<p>In two dimensions, the vortex-stretching term <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>(</mo><mi>ω</mi><mo>⋅</mo><mi>∇</mi><mo>)</mo><mi>u</mi></mrow><annotation encoding="application/x-tex">(\boldsymbol{\omega} \cdot \nabla)\mathbf{u}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.037em;">ω</span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">∇</span><span class="mclose">)</span><span class="mord mathbf">u</span></span></span></span> vanishes identically. In three dimensions, contracting with <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ω</mi></mrow><annotation encoding="application/x-tex">\boldsymbol{\omega}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4444em;"></span><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.037em;">ω</span></span></span></span></span></span> produces the enstrophy production equation:</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mfrac><mn>1</mn><mn>2</mn></mfrac><mfrac><mrow><mi>D</mi><mi>∣</mi><mi>ω</mi><msup><mi>∣</mi><mn>2</mn></msup></mrow><mrow><mi>D</mi><mi>t</mi></mrow></mfrac><mo>=</mo><msub><mi>ω</mi><mi>i</mi></msub><msub><mi>S</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><msub><mi>ω</mi><mi>j</mi></msub><mo>−</mo><mi>ν</mi><mi>∣</mi><mi>∇</mi><mi>ω</mi><msup><mi>∣</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">\frac{1}{2} \frac{D |\boldsymbol{\omega}|^2}{Dt} = \omega_i S_{ij} \omega_j - \nu |\nabla \boldsymbol{\omega}|^2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:2.1771em;vertical-align:-0.686em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3214em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">2</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.4911em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0278em;">D</span><span class="mord mathnormal">t</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0278em;">D</span><span class="mord">∣</span><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.037em;">ω</span></span></span><span class="mord"><span class="mord">∣</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.9694em;vertical-align:-0.2861em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0359em;">ω</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0576em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.0572em;">ij</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0359em;">ω</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0359em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0572em;">j</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1.1141em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0637em;">ν</span><span class="mord">∣∇</span><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.037em;">ω</span></span></span><span class="mord"><span class="mord">∣</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8641em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span></span></span></span></span>
+<p>where <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>S</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>=</mo><mfrac><mn>1</mn><mn>2</mn></mfrac><mo>(</mo><msub><mi>∂</mi><mi>i</mi></msub><msub><mi>u</mi><mi>j</mi></msub><mo>+</mo><msub><mi>∂</mi><mi>j</mi></msub><msub><mi>u</mi><mi>i</mi></msub><mo>)</mo></mrow><annotation encoding="application/x-tex">S_{ij} = \frac{1}{2}(\partial_i u_j + \partial_j u_i)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.9694em;vertical-align:-0.2861em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0576em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.0572em;">ij</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1.1901em;vertical-align:-0.345em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.8451em;"><span style="top:-2.655em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">2</span></span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.394em;"><span class="pstrut" style="height:3em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">1</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.345em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mopen">(</span><span class="mord"><span class="mord" style="margin-right:0.0556em;">∂</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0556em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord"><span class="mord mathnormal">u</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0572em;">j</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1.0361em;vertical-align:-0.2861em;"></span><span class="mord"><span class="mord" style="margin-right:0.0556em;">∂</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0556em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0572em;">j</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.2861em;"><span></span></span></span></span></span></span><span class="mord"><span class="mord mathnormal">u</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span> is the symmetric rate-of-strain tensor with ordered eigenvalues <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>λ</mi><mn>1</mn></msub><mo>≥</mo><msub><mi>λ</mi><mn>2</mn></msub><mo>≥</mo><msub><mi>λ</mi><mn>3</mn></msub></mrow><annotation encoding="application/x-tex">\lambda_1 \ge \lambda_2 \ge \lambda_3</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8444em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">λ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≥</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8444em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">λ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≥</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8444em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">λ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">3</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> satisfying <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>λ</mi><mn>1</mn></msub><mo>+</mo><msub><mi>λ</mi><mn>2</mn></msub><mo>+</mo><msub><mi>λ</mi><mn>3</mn></msub><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\lambda_1 + \lambda_2 + \lambda_3 = 0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8444em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">λ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8444em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">λ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.8444em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">λ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">3</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0</span></span></span></span>.</p>
+<h2 id="2-kolmogorov-inertial-scaling">2. Kolmogorov Inertial Scaling</h2>
+<p>Within the inertial range <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>η</mi><mo>≪</mo><mi>r</mi><mo>≪</mo><mi>L</mi></mrow><annotation encoding="application/x-tex">\eta \ll r \ll L</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7335em;vertical-align:-0.1944em;"></span><span class="mord mathnormal" style="margin-right:0.0359em;">η</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≪</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.5782em;vertical-align:-0.0391em;"></span><span class="mord mathnormal" style="margin-right:0.0278em;">r</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≪</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal">L</span></span></span></span>, dimensional homogeneity of the mean energy dissipation rate <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ε</mi></mrow><annotation encoding="application/x-tex">\varepsilon</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal">ε</span></span></span></span> yields the classical <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>−</mo><mn>5</mn><mi>/</mi><mn>3</mn></mrow><annotation encoding="application/x-tex">-5/3</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord">−</span><span class="mord">5/3</span></span></span></span> kinetic energy spectrum:</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>E</mi><mo>(</mo><mi>k</mi><mo>)</mo><mo>=</mo><msub><mi>C</mi><mi>K</mi></msub><msup><mi>ε</mi><mrow><mn>2</mn><mi>/</mi><mn>3</mn></mrow></msup><msup><mi>k</mi><mrow><mo>−</mo><mn>5</mn><mi>/</mi><mn>3</mn></mrow></msup><mo>,</mo><mspace width="2em"></mspace><mi>η</mi><mo>=</mo><msup><mrow><mo>(</mo><mfrac><msup><mi>ν</mi><mn>3</mn></msup><mi>ε</mi></mfrac><mo>)</mo></mrow><mrow><mn>1</mn><mi>/</mi><mn>4</mn></mrow></msup></mrow><annotation encoding="application/x-tex">E(k) = C_K \varepsilon^{2/3} k^{-5/3}, \qquad \eta = \left(\frac{\nu^3}{\varepsilon}\right)^{1/4}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0576em;">E</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.0315em;">k</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:1.1324em;vertical-align:-0.1944em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0715em;">C</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0715em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight" style="margin-right:0.0715em;">K</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mord"><span class="mord mathnormal">ε</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.938em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">2/3</span></span></span></span></span></span></span></span></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0315em;">k</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.938em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">−</span><span class="mord mtight">5/3</span></span></span></span></span></span></span></span></span><span class="mpunct">,</span><span class="mspace" style="margin-right:2em;"></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord mathnormal" style="margin-right:0.0359em;">η</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.719em;vertical-align:-0.95em;"></span><span class="minner"><span class="minner"><span class="mopen delimcenter" style="top:0em;"><span class="delimsizing size3">(</span></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.4911em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal">ε</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord"><span class="mord mathnormal" style="margin-right:0.0637em;">ν</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">3</span></span></span></span></span></span></span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mclose delimcenter" style="top:0em;"><span class="delimsizing size3">)</span></span></span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:1.769em;"><span style="top:-3.944em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">1/4</span></span></span></span></span></span></span></span></span></span></span></span></span>
+<h3 id="strain-eigenframe-alignment">Strain Eigenframe Alignment</h3>
+<p>Direct numerical simulations consistently demonstrate that <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ω</mi></mrow><annotation encoding="application/x-tex">\boldsymbol{\omega}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4444em;"></span><span class="mord"><span class="mord"><span class="mord boldsymbol" style="margin-right:0.037em;">ω</span></span></span></span></span></span> aligns preferentially with the intermediate eigenvector <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>e</mi><mn>2</mn></msub></mrow><annotation encoding="application/x-tex">\mathbf{e}_2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5944em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathbf">e</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span> rather than the maximal stretching axis <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>e</mi><mn>1</mn></msub></mrow><annotation encoding="application/x-tex">\mathbf{e}_1</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.5944em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathbf">e</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span>, because positive <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>λ</mi><mn>2</mn></msub><mo>></mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\lambda_2 > 0</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8444em;vertical-align:-0.15em;"></span><span class="mord"><span class="mord mathnormal">λ</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3011em;"><span style="top:-2.55em;margin-left:0em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">></span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">0</span></span></span></span> sustains sheet-to-tube roll-up without destabilizing axial shear.</p></article>
+        <section class="bibtex-box" aria-label="BibTeX Citation">
+          <div class="bibtex-head">
+            <h2>Cite This Monograph</h2>
+            <button type="button" class="copy-btn" id="copyBibtex">Copy BibTeX</button>
+          </div>
+          <pre class="bibtex-pre" id="bibtexPre">@article{lindqvist2026vorticity,
+  title={Vorticity Stretching and Energy Cascades in Incompressible Turbulence},
+  author={Prof. Henrik Lindqvist},
+  journal={AmplitudeLand Scientific Journal},
+  year={2026},
+  url={https://Mostafa-gh-phys.github.io/amplitudeland-/posts/vorticity-stretching-navier-stokes/},
+  doi={10.48550/ax.2026.0098}
+}</pre>
+        </section>
+      </main>
+      <aside>
+        <nav class="side-card" aria-label="Table of Contents">
+          <div class="side-title">Contents</div>
+          <ul class="toc-list">
+            <li class=""><a href="#1-the-vorticity-transport-equation">1. The Vorticity Transport Equation</a></li>
+            <li class=""><a href="#2-kolmogorov-inertial-scaling">2. Kolmogorov Inertial Scaling</a></li>
+            <li class="toc-h3"><a href="#strain-eigenframe-alignment">Strain Eigenframe Alignment</a></li>
+          </ul>
+        </nav>
+        <div class="side-card">
+          <div class="side-title">Monograph Dossier</div>
+          <dl class="dossier">
+            <div class="dossier-row"><dt>Category</dt><dd>Fluid Dynamics</dd></div>
+            <div class="dossier-row"><dt>Tags</dt><dd>Navier-Stokes, Turbulence, Vorticity, PDEs</dd></div>
+            <div class="dossier-row"><dt>Git File</dt><dd class="mono">content/posts/vorticity-stretching-navier-stokes.md</dd></div>
+            <div class="dossier-row"><dt>Commit SHA</dt><dd class="mono">4f2a90c</dd></div>
+            <div class="dossier-row"><dt>DOI</dt><dd class="mono">10.48550/ax.2026.0098</dd></div>
+            <div class="dossier-row"><dt>Updated</dt><dd class="mono">2026-11-09</dd></div>
+          </dl>
+        </div>
+      </aside>
+    </div>
+    <footer>
+      <span>AmplitudeLand Scientific Journal · Static Monograph</span>
+      <span><a href="../../index.html">← Back to Monograph Index</a></span>
+    </footer>
+    <script>
+      (function () {
+        var select = document.getElementById('themeSelect');
+        if (select) {
+          var saved = localStorage.getItem('amplitudeland_pages_theme') || '';
+          select.value = saved;
+          select.addEventListener('change', function () {
+            var val = select.value;
+            if (val) {
+              document.documentElement.setAttribute('data-theme', val);
+              localStorage.setItem('amplitudeland_pages_theme', val);
+            } else {
+              document.documentElement.removeAttribute('data-theme');
+              localStorage.removeItem('amplitudeland_pages_theme');
+            }
+          });
+        }
+        var copyBtn = document.getElementById('copyBibtex');
+        var pre = document.getElementById('bibtexPre');
+        if (copyBtn && pre && navigator.clipboard) {
+          copyBtn.addEventListener('click', function () {
+            navigator.clipboard.writeText(pre.textContent || '').then(function () {
+              copyBtn.textContent = 'Copied BibTeX';
+              setTimeout(function () { copyBtn.textContent = 'Copy BibTeX'; }, 2000);
+            });
+          });
+        }
+      })();
+    </script>
+  </body>
+</html>
